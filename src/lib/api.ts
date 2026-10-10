@@ -18,6 +18,11 @@ function csrf(): string | undefined {
   return m ? decodeURIComponent(m[1]) : undefined;
 }
 
+/** Hard ceiling per request. Without this, a sleeping backend hangs
+ *  Vercel prerender past its 60s page budget and fails the whole build;
+ *  with it, SSR falls back gracefully and ISR revalidates when the API wakes. */
+const TIMEOUT_MS = 15000;
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -25,11 +30,20 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   };
   const token = init?.method && init.method !== "GET" ? csrf() : undefined;
   if (token) headers["x-csrf-token"] = token;
-  const res = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers,
-    credentials: "include",
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...init,
+      headers,
+      credentials: "include",
+      signal: init?.signal ?? AbortSignal.timeout(TIMEOUT_MS),
+    });
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "TimeoutError") {
+      throw new ApiError(504, "timeout", "The catalogue is waking up. Try again in a moment.");
+    }
+    throw new ApiError(503, "unreachable", "Couldn't reach the catalogue service.");
+  }
   if (!res.ok) {
     let code = "http_error";
     let message = `Request failed (${res.status})`;
