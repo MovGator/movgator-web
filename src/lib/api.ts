@@ -23,7 +23,25 @@ function csrf(): string | undefined {
  *  with it, SSR falls back gracefully and ISR revalidates when the API wakes. */
 const TIMEOUT_MS = 15000;
 
-async function req<T>(path: string, init?: RequestInit): Promise<T> {
+let isRefreshing = false;
+let refreshPromise: Promise<import("./types").Me> | null = null;
+
+async function refreshAuth(): Promise<import("./types").Me> {
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
+  }
+  isRefreshing = true;
+  refreshPromise = req<import("./types").Me>(`/api/v1/auth/refresh`, {
+    method: "POST",
+    body: "{}",
+  }).finally(() => {
+    isRefreshing = false;
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
+async function req<T>(path: string, init?: RequestInit, isRetry = false): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...((init?.headers as Record<string, string>) ?? {}),
@@ -45,6 +63,16 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(503, "unreachable", "Couldn't reach the catalogue service.");
   }
   if (!res.ok) {
+    // Handle 401 with automatic token refresh and retry
+    if (res.status === 401 && !isRetry && (path === "/api/v1/me" || init?.method)) {
+      try {
+        await refreshAuth();
+        // Retry the original request once after refresh
+        return req<T>(path, init, true);
+      } catch {
+        // Refresh failed, throw original error
+      }
+    }
     let code = "http_error";
     let message = `Request failed (${res.status})`;
     try {

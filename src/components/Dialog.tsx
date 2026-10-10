@@ -6,11 +6,13 @@ export function Dialog({
   onClose,
   title,
   children,
+  maxWidth = "max-w-md",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  maxWidth?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -36,7 +38,7 @@ export function Dialog({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="mr-card w-full max-w-md p-6"
+        className={`mr-card w-full ${maxWidth} p-6`}
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-display text-xl font-bold">{title}</h2>
