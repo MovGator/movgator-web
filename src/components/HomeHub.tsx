@@ -29,7 +29,7 @@ function Rating({ t }: { t: Title }) {
   return null;
 }
 
-function GridCard({ t }: { t: Title }) {
+function GridCard({ t, showReleaseDate }: { t: Title; showReleaseDate?: boolean }) {
   return (
     <Link
       href={`/title/${t.id}`}
@@ -39,9 +39,18 @@ function GridCard({ t }: { t: Title }) {
       <PosterArt title={t} />
       <p className="mt-2 truncate text-sm font-semibold group-hover:underline">{t.title}</p>
       <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-        {[t.release_year, t.media_type === "anime" ? "Anime" : t.media_type === "series" ? "Series" : "Film"]
-          .filter(Boolean)
-          .join(" · ")}
+        {showReleaseDate && t.release_date ? (
+          <>
+            <time dateTime={t.release_date}>
+              {new Date(t.release_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+            </time>
+            {t.media_type === "anime" ? " · Anime" : t.media_type === "series" ? " · Series" : " · Film"}
+          </>
+        ) : (
+          [t.release_year, t.media_type === "anime" ? "Anime" : t.media_type === "series" ? "Series" : "Film"]
+            .filter(Boolean)
+            .join(" · ")
+        )}
       </p>
       <div className="mt-1 flex flex-wrap items-center gap-1.5">
         <Rating t={t} />
@@ -208,7 +217,7 @@ export function HomeHub({
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {items.map((t) => (
-              <GridCard key={t.id} t={t} />
+              <GridCard key={t.id} t={t} showReleaseDate={tab === "coming"} />
             ))}
           </div>
         )}
