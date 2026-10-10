@@ -1,20 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const { splashDone, loading } = useAuth();
   const [phase, setPhase] = useState<"fade-in" | "hold" | "scale-out" | "done">("fade-in");
 
-  // Start splash animation if auth check is already complete,
-  // or begin the loading check if still in progress
   useEffect(() => {
-    if (splashDone) {
-      // Auth check done - animate splash out
+    const timer = setTimeout(() => {
       setPhase("hold");
       setTimeout(() => {
         setPhase("scale-out");
@@ -23,42 +18,10 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           onComplete();
         }, 500);
       }, 800);
-    } else if (loading) {
-      // Still loading - start the splash animation timer
-      // This will play out, then splashDone will be set by auth effect
-      const timer = setTimeout(() => {
-        setPhase("hold");
-        setTimeout(() => {
-          setPhase("scale-out");
-          setTimeout(() => {
-            setPhase("done");
-            onComplete();
-          }, 500);
-        }, 800);
-      }, 500);
+    }, 500);
 
-      return () => clearTimeout(timer);
-    }
-    // If !splashDone && !loading, auth check failed - hide immediately
-  }, [splashDone, loading, onComplete]);
-
-  useEffect(() => {
-    if (phase === "done") {
-      onComplete();
-    }
-  }, [phase, onComplete]);
-
-  // If auth check failed or completed, hide splash screen
-  // This ensures splash disappears when auth state changes
-  useEffect(() => {
-    if (!splashDone && phase !== "fade-in") {
-      // Auth check completed (either success or error), transition out
-      setPhase("scale-out");
-      setTimeout(() => {
-        onComplete();
-      }, 500);
-    }
-  }, [splashDone, phase, onComplete]);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
 
   return (
     <div

@@ -115,9 +115,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>
+            <SplashScreenWrapper />
           </AuthProvider>
         </ThemeProvider>
-        <SplashScreenWrapper />
         <CookieConsentBanner />
         <Analytics />
       </body>

@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { Me } from "./types";
 
@@ -16,6 +16,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [splashDone, setSplashDone] = useState(false);
+  const loadingRef = useRef(loading);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   const refresh = useCallback(async () => {
     try {
@@ -29,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
     async function load() {
       try {
         const user = await api.me();
@@ -37,13 +43,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) setMe(null);
       } finally {
         if (!cancelled) {
+          clearTimeout(timeoutId);
           setLoading(false);
           setSplashDone(true);
         }
       }
     }
     load();
-    return () => { cancelled = true; };
+    // Safety timeout: ensure splashDone is set even if api.me() hangs
+    timeoutId = setTimeout(() => {
+      if (!cancelled && loadingRef.current) {
+        setLoading(false);
+        setSplashDone(true);
+      }
+    }, 10000);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const signOut = useCallback(async () => {
