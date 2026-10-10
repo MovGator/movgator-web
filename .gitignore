@@ -7,8 +7,7 @@ playwright-report/
 .DS_Store
 *.log
 
-# Env (placeholders only in .env.example)
+# Env files (all of them — real secrets AND local templates stay off GitHub)
 .env.local
 .env
 .env.example
-!.env.example
