@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CardsThree, MagnifyingGlass } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
@@ -20,13 +20,22 @@ function DiscoverInner() {
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
   const [prefs, setPrefs] = useState<{ favourite_genres: string[]; include_anime: boolean } | null>(null);
 
+  // Pagination state
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
   const q = params.get("q") ?? "";
   const genre = params.get("genre") ?? "";
   const mood = params.get("mood") ?? "";
   const media = params.get("media") ?? "";
   const anime = params.get("anime") ?? "";
   const sort = params.get("sort") ?? "popular";
-  // Moods map onto real genre slugs (see lib/moods.ts); explicit genre wins.
   const effectiveGenre = genre || genresForMood(mood)[0] || "";
 
   const [draft, setDraft] = useState(q);
@@ -41,18 +50,89 @@ function DiscoverInner() {
     else setPrefs(null);
   }, [me]);
 
-  useEffect(() => {
+  const searchKey = `${q}|${effectiveGenre}|${media}|${anime}|${sort}`;
+
+  const loadInitial = useCallback(async () => {
     setState("loading");
-    api
-      .search({ q, genre: effectiveGenre, media_type: media, anime, sort, limit: 24 })
-      .then((r) => {
-        setItems(r.items);
-        setTotal(r.total);
-        setState("ok");
-      })
-      .catch(() => setState("error"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, effectiveGenre, media, anime, sort]);
+    setError(null);
+    setItems([]);
+    setSeenIds(new Set());
+    setCursor(null);
+    setHasMore(true);
+    try {
+      const r = await api.search({ q, genre: effectiveGenre, media_type: media, anime, sort, limit: 24 });
+      setItems(r.items);
+      setSeenIds(new Set(r.items.map(t => t.id)));
+      setTotal(r.total);
+      setCursor(r.next_cursor);
+      setHasMore(r.next_cursor !== null);
+      setState("ok");
+    } catch {
+      setState("error");
+    }
+  }, [q, effectiveGenre, media, anime, sort, searchKey]);
+
+  useEffect(() => {
+    loadInitial();
+  }, [loadInitial]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || cursor === null) return;
+
+    setLoadingMore(true);
+    setError(null);
+
+    try {
+      const r = await api.search({ q, genre: effectiveGenre, media_type: media, anime, sort, cursor, limit: 24 });
+      const newItems = r.items.filter(t => !seenIds.has(t.id));
+
+      if (newItems.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      setItems(prev => [...prev, ...newItems]);
+      setSeenIds(prev => {
+        const next = new Set(prev);
+        newItems.forEach(t => next.add(t.id));
+        return next;
+      });
+
+      if (r.next_cursor !== null) {
+        setCursor(r.next_cursor);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load more movies");
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [cursor, loadingMore, hasMore, seenIds, q, effectiveGenre, media, anime, sort]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px", threshold: 0.1 }
+    );
+
+    observerRef.current.observe(sentinel);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadMore]);
 
   const set = (patch: Record<string, string>) => {
     const next = new URLSearchParams(params.toString());
@@ -167,7 +247,7 @@ function DiscoverInner() {
       </div>
       {mood && !genre && (
         <p className="mt-2 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-          Showing {genresForMood(mood).join(" + ")} titles for “{MOODS.find((m) => m.id === mood)?.label}”.
+          Showing {genresForMood(mood).join(" + ")} titles for "{MOODS.find((m) => m.id === mood)?.label}".
         </p>
       )}
 
@@ -232,11 +312,34 @@ function DiscoverInner() {
         />
       )}
       {state === "ok" && items.length > 0 && (
-        <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {items.map((t) => (
-            <MovieCard key={t.id} title={t} />
-          ))}
-        </div>
+        <>
+          <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {items.map((t) => (
+              <MovieCard key={t.id} title={t} />
+            ))}
+          </div>
+          {loadingMore && (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
+            </div>
+          )}
+          {error && (
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <p className="text-sm font-medium text-red-600">{error}</p>
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="mr-chip px-4 py-2 text-sm font-semibold"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+          {/* Sentinel for infinite scroll */}
+          {hasMore && (
+            <div ref={sentinelRef} className="h-4" aria-hidden="true" />
+          )}
+        </>
       )}
     </div>
   );

@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { Avatar } from "./Avatar";
 import { Logo, LogoIcon } from "./Logo";
+import { Dialog } from "./Dialog";
 
 interface NavItem {
   href: string;
@@ -105,8 +106,9 @@ const SIDEBAR_KEY = "mr-sidebar-collapsed";
 
 export function AppSidebar() {
   const path = usePathname();
-  const { me } = useAuth();
+  const { me, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     try {
       setCollapsed(localStorage.getItem(SIDEBAR_KEY) === "1");
@@ -123,6 +125,10 @@ export function AppSidebar() {
       }
       return !c;
     });
+  };
+  const handleSignOut = async () => {
+    setMenuOpen(false);
+    await signOut();
   };
 
   return (
@@ -186,10 +192,16 @@ export function AppSidebar() {
 
       <div className="app-sidebar-me">
         {me ? (
-          <Link href="/profile" aria-label={`Profile: ${me.display_name}`} title={me.display_name} className="app-sidebar-user">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label={`Profile menu for ${me.display_name}`}
+            title={me.display_name}
+            className="app-sidebar-user"
+          >
             <Avatar name={me.display_name} url={me.avatar_url} size={32} />
             <span className="app-side-label">{me.display_name}</span>
-          </Link>
+          </button>
         ) : (
           <Link href="/profile" aria-label="Sign in" title="Sign in" className="app-side-item">
             <PIcon icon={User} active={isActive(path, "/profile")} size={23} />
@@ -197,6 +209,29 @@ export function AppSidebar() {
           </Link>
         )}
       </div>
+
+      <Dialog open={menuOpen} onClose={() => setMenuOpen(false)} title="Account">
+        <div className="flex flex-col gap-2">
+          <Link
+            href="/profile"
+            onClick={() => setMenuOpen(false)}
+            className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start"
+            aria-label="Help & Settings"
+          >
+            <User size={20} weight="regular" aria-hidden="true" />
+            <span>Help & Settings</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start text-red-600 hover:bg-red-50"
+            aria-label="Log out"
+          >
+            <User size={20} weight="regular" aria-hidden="true" />
+            <span>Log Out</span>
+          </button>
+        </div>
+      </Dialog>
     </nav>
   );
 }

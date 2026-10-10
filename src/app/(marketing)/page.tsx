@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Play } from "@phosphor-icons/react/dist/ssr";
 import { api } from "@/lib/api";
-import type { Title } from "@/lib/types";
+import type { Title, FeedSection } from "@/lib/types";
 import { MovieCard, PosterRail } from "@/components/Movie";
 import { PosterArt } from "@/components/PosterArt";
 
@@ -69,7 +69,7 @@ function Spotlight({ title }: { title: Title }) {
 
 export default async function LandingPage() {
   const feed = await getFeed();
-  const popular = feed?.sections.find((s) => s.key === "popular")?.items ?? [];
+  const popular = (feed?.sections as FeedSection[] | undefined)?.find((s) => s.key === "popular")?.items ?? [];
   const preview = popular.slice(0, 8);
   const spotlight = popular[0];
 

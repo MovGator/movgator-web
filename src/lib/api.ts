@@ -1,4 +1,4 @@
-import type { Genre, Title } from "./types";
+import type { FeedResponse, Genre, Title } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -90,8 +90,12 @@ async function req<T>(path: string, init?: RequestInit, isRetry = false): Promis
 
 export const api = {
   feed: (cursor = 0, limit = 12) =>
-    req<{ sections: { key: string; title: string; items: Title[] }[]; feed: Title[]; next_cursor: number | null; total: number }>(
+    req<FeedResponse>(
       `/api/v1/feed?cursor=${cursor}&limit=${limit}`
+    ),
+  feedSection: (section: string, cursor = 0, limit = 18) =>
+    req<FeedResponse>(
+      `/api/v1/feed?section=${section}&section_cursor=${cursor}&section_limit=${limit}`
     ),
   search: (params: Record<string, string | number>) => {
     const q = new URLSearchParams(

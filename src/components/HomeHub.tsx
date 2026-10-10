@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { DiceFive, MagnifyingGlass, UsersThree } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import type { Title } from "@/lib/types";
+import type { Title, FeedSection } from "@/lib/types";
 import { PosterArt } from "@/components/PosterArt";
 import { GenreChip, Skeleton } from "@/components/Movie";
 import { InstallCard } from "@/components/InstallPrompt";
@@ -17,6 +17,13 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "coming", label: "Coming Soon" },
   { key: "gems", label: "Hidden Gems" },
 ];
+
+const TAB_TO_SECTION: Record<TabKey, string> = {
+  foryou: "popular",
+  trending: "popular",
+  coming: "coming",
+  gems: "gems",
+};
 
 function Rating({ t }: { t: Title }) {
   if (t.provenance === "tmdb" && t.tmdb_rating != null) {
@@ -76,80 +83,63 @@ export function HomeHub({
   const [forYou, setForYou] = useState<Title[] | null>(null);
   const [forYouState, setForYouState] = useState<"idle" | "loading" | "ok" | "error">("idle");
 
-  // Per-tab pagination state
-  const [feedCursor, setFeedCursor] = useState<number | null>(null);
-  const [feedLoading, setFeedLoading] = useState(false);
-  const [feedError, setFeedError] = useState<string | null>(null);
-  const [feedHasMore, setFeedHasMore] = useState(true);
-  const [seenFeedIds, setSeenFeedIds] = useState<Set<string>>(new Set());
+  // Per-tab pagination state for sections
+  const [sectionCursors, setSectionCursors] = useState<Record<string, number | null>>({});
+  const [sectionLoading, setSectionLoading] = useState<Record<string, boolean>>({});
+  const [sectionError, setSectionError] = useState<Record<string, string | null>>({});
+  const [sectionHasMore, setSectionHasMore] = useState<Record<string, boolean>>({});
+  const [sectionItems, setSectionItems] = useState<Record<string, Title[]>>({});
+  const [seenSectionIds, setSeenSectionIds] = useState<Record<string, Set<string>>>({});
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Load more items for the current tab using cursor-based pagination
-  const loadMoreItems = useCallback(async () => {
-    if (feedLoading || !feedHasMore || feedCursor === null) return;
+  // Load more items for a specific section
+  const loadMoreSection = useCallback(async (sectionKey: string) => {
+    if (sectionLoading[sectionKey] || !sectionHasMore[sectionKey] || sectionCursors[sectionKey] === null) return;
 
-    setFeedLoading(true);
-    setFeedError(null);
+    setSectionLoading(prev => ({ ...prev, [sectionKey]: true }));
+    setSectionError(prev => ({ ...prev, [sectionKey]: null }));
 
     try {
-      const response = await api.feed(feedCursor, 18);
-      if (!response) {
-        setFeedError("Failed to load more movies");
-        setFeedHasMore(false);
+      const response = await api.feedSection(sectionKey, sectionCursors[sectionKey]!, 18);
+      if (!response || !response.section) {
+        setSectionError(prev => ({ ...prev, [sectionKey]: "Failed to load more movies" }));
+        setSectionHasMore(prev => ({ ...prev, [sectionKey]: false }));
         return;
       }
 
-      const newItems = response.feed.filter(t => !seenFeedIds.has(t.id));
+      const newItems = response.section.items.filter((t: Title) => !seenSectionIds[sectionKey]?.has(t.id));
 
       if (newItems.length === 0) {
-        setFeedHasMore(false);
+        setSectionHasMore(prev => ({ ...prev, [sectionKey]: false }));
         return;
       }
 
-      // Determine which section these items belong to based on current tab
-      let itemsKey: keyof typeof sections;
-      if (tab === "foryou") {
-        // For "For You", add to the forYou state
-        setForYou(prev => {
-          const combined = [...(prev ?? []), ...newItems];
-          // Deduplicate by ID
-          const deduped = combined.filter((t, i, arr) => arr.findIndex(t2 => t2.id === t.id) === i);
-          return deduped;
-        });
-        setSeenFeedIds(prev => {
-          const next = new Set(prev);
-          newItems.forEach(t => next.add(t.id));
-          return next;
-        });
-      } else {
-        // For other tabs, add to the section's items
-        setSeenFeedIds(prev => {
-          const next = new Set(prev);
-          newItems.forEach(t => next.add(t.id));
-          return next;
-        });
+      setSectionItems(prev => ({
+        ...prev,
+        [sectionKey]: [...(prev[sectionKey] ?? []), ...newItems],
+      }));
+      setSeenSectionIds(prev => {
+        const next = new Set(prev[sectionKey] ?? []);
+        newItems.forEach((t: Title) => next.add(t.id));
+        return { ...prev, [sectionKey]: next };
+      });
 
-        // Update the section items - we need to merge with existing
-        // Since sections is read-only from props, we'll track cursor-based items separately
-        // by extending the section via a ref approach: store accumulated items in state
-      }
-
-      if (response.next_cursor !== null) {
-        setFeedCursor(response.next_cursor);
+      if (response.section.next_cursor !== null) {
+        setSectionCursors(prev => ({ ...prev, [sectionKey]: response.section!.next_cursor! }));
       } else {
-        setFeedHasMore(false);
+        setSectionHasMore(prev => ({ ...prev, [sectionKey]: false }));
       }
     } catch (err) {
-      setFeedError(err instanceof Error ? err.message : "Failed to load more movies");
-      setFeedHasMore(false);
+      setSectionError(prev => ({ ...prev, [sectionKey]: err instanceof Error ? err.message : "Failed to load more movies" }));
+      setSectionHasMore(prev => ({ ...prev, [sectionKey]: false }));
     } finally {
-      setFeedLoading(false);
+      setSectionLoading(prev => ({ ...prev, [sectionKey]: false }));
     }
-  }, [feedCursor, feedLoading, feedHasMore, seenFeedIds, tab]);
+  }, [sectionCursors, sectionLoading, sectionHasMore, seenSectionIds]);
 
-  // Intersection Observer for infinite scroll - works for all tabs
+  // Intersection Observer for infinite scroll
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
@@ -157,7 +147,10 @@ export function HomeHub({
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          loadMoreItems();
+          const sectionKey = TAB_TO_SECTION[tab];
+          if (sectionKey !== "popular" || tab === "trending") {
+            loadMoreSection(sectionKey);
+          }
         }
       },
       { rootMargin: "200px", threshold: 0.1 }
@@ -170,40 +163,63 @@ export function HomeHub({
         observerRef.current.disconnect();
       }
     };
-  }, [loadMoreItems]);
+  }, [tab, loadMoreSection]);
 
-  // Reset feed cursor and state when sections change (initial load)
+  // Initialize section state from initial sections prop
   useEffect(() => {
-    // Initialize cursor based on first section items for the current tab
-    let initialCursor: number | null = null;
-    let initialHasMore = true;
+    const newCursors: Record<string, number | null> = {};
+    const newHasMore: Record<string, boolean> = {};
+    const newItems: Record<string, Title[]> = {};
+    const newSeenIds: Record<string, Set<string>> = {};
 
-    if (tab === "foryou") {
-      // For You uses onboarding recs, not feed cursor
-      initialCursor = null;
-      initialHasMore = false; // No pagination for For You via feed API
-    } else {
-      // For trending/coming/gems: initialize cursor from section length
-      const sectionItems = sections[tab] ?? [];
-      initialCursor = sectionItems.length;
-      initialHasMore = sectionItems.length > 0;
-    }
+    Object.entries(sections).forEach(([key, items]) => {
+      newCursors[key] = items.length >= 18 ? items.length : null;
+      newHasMore[key] = items.length >= 18;
+      newItems[key] = items;
+      newSeenIds[key] = new Set(items.map(t => t.id));
+    });
 
-    setFeedCursor(initialCursor);
-    setFeedHasMore(initialHasMore);
-    setSeenFeedIds(new Set((sections[tab] ?? []).map(t => t.id)));
-    setFeedError(null);
-  }, [sections, tab]);
+    setSectionCursors(newCursors);
+    setSectionHasMore(newHasMore);
+    setSectionItems(newItems);
+    setSeenSectionIds(newSeenIds);
+    setSectionError({});
+  }, [sections]);
 
   // Compute displayed items based on tab
   const items: Title[] =
     tab === "foryou"
-      ? forYou ?? sections.popular ?? []
+      ? forYou ?? sectionItems.popular ?? sections.popular ?? []
       : tab === "trending"
-        ? sections.popular ?? []
+        ? sectionItems.popular ?? sections.popular ?? []
         : tab === "coming"
-          ? sections.coming ?? []
-          : sections.gems ?? [];
+          ? sectionItems.coming ?? sections.coming ?? []
+          : sectionItems.gems ?? sections.gems ?? [];
+
+  const currentSectionKey = TAB_TO_SECTION[tab];
+  const isLoading = sectionLoading[currentSectionKey] || false;
+  const hasError = sectionError[currentSectionKey] || null;
+  const hasMore = sectionHasMore[currentSectionKey] || false;
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setForYouState("loading");
+      try {
+        const prefs = me ? await api.prefs().catch(() => null) : null;
+        const genres = prefs?.favourite_genres ?? [];
+        const recs = await api.onboarding(genres, prefs?.include_anime ?? true);
+        if (!cancelled) {
+          setForYou(recs);
+          setForYouState("ok");
+        }
+      } catch {
+        if (!cancelled) setForYouState("error");
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [me]);
 
   const tabRef = (i: number) => (el: HTMLButtonElement | null) => {
     if (el) el.dataset.index = String(i);
@@ -306,51 +322,17 @@ export function HomeHub({
               : "Popular titles for now — sign in and finish onboarding for picks tuned to you."}
           </p>
         )}
-        {tab === "trending" && feedLoading && (
+        {isLoading && (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
           </div>
         )}
-        {tab === "trending" && feedError && (
+        {hasError && (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <p className="text-sm font-medium text-red-600">{feedError}</p>
+            <p className="text-sm font-medium text-red-600">{hasError}</p>
             <button
-              onClick={loadMoreItems}
-              disabled={feedLoading}
-              className="mr-chip px-4 py-2 text-sm font-semibold"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-        {tab === "coming" && feedLoading && (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
-          </div>
-        )}
-        {tab === "coming" && feedError && (
-          <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <p className="text-sm font-medium text-red-600">{feedError}</p>
-            <button
-              onClick={loadMoreItems}
-              disabled={feedLoading}
-              className="mr-chip px-4 py-2 text-sm font-semibold"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-        {tab === "gems" && feedLoading && (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
-          </div>
-        )}
-        {tab === "gems" && feedError && (
-          <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <p className="text-sm font-medium text-red-600">{feedError}</p>
-            <button
-              onClick={loadMoreItems}
-              disabled={feedLoading}
+              onClick={() => loadMoreSection(currentSectionKey)}
+              disabled={isLoading}
               className="mr-chip px-4 py-2 text-sm font-semibold"
             >
               Retry
@@ -369,7 +351,7 @@ export function HomeHub({
           </div>
         )}
         {/* Sentinel for infinite scroll - shown for all tabs when more items can load */}
-        {feedHasMore && (
+        {hasMore && (
           <div ref={sentinelRef} className="h-4" aria-hidden="true" />
         )}
       </div>

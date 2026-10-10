@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import { HomeHub, HomeError } from "@/components/HomeHub";
+import type { Title } from "@/lib/types";
 
 export const metadata = { title: "Home" };
 export const revalidate = 60;
@@ -12,9 +13,9 @@ export default async function HomePage() {
     feed = null;
   }
   if (!feed) return <HomeError />;
-  const sections: Record<string, (typeof feed.feed)[number][]> = {};
+  const sections: Record<string, Title[]> = {};
   for (const s of feed.sections) sections[s.key] = s.items;
-  const demo = feed.feed.some((t) => t.provenance === "seed");
+  const demo = feed.feed.some((t: Title) => t.provenance === "seed");
   return (
     <HomeHub
       sections={sections}

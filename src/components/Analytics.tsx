@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useCookieConsent } from "@/components/CookieConsent";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 declare global {
   interface Window {
@@ -117,7 +118,7 @@ export function Analytics() {
     };
   }, [consent?.analytics]);
 
-  return null;
+  return <VercelAnalytics />;
 }
 
 export function trackEvent(eventName: string, props?: Record<string, string | number | boolean>) {

@@ -26,6 +26,24 @@ export interface FeedSection {
   key: string;
   title: string;
   items: Title[];
+  next_cursor?: number | null;
+  total?: number;
+}
+
+export interface FeedSectionPaginated {
+  key: string;
+  title: string;
+  items: Title[];
+  next_cursor?: number | null;
+  total?: number;
+}
+
+export interface FeedResponse {
+  sections: FeedSection[];
+  feed: Title[];
+  next_cursor: number | null;
+  total: number;
+  section?: FeedSectionPaginated;
 }
 
 export interface Genre {
