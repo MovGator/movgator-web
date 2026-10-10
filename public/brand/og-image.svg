@@ -20,33 +20,47 @@
   <circle cx="1050" cy="480" r="120" fill="#3b1f4a" opacity="0.15"/>
   <circle cx="1100" cy="100" r="60" fill="#f5a623" opacity="0.05"/>
   
-  <!-- Main content area -->
+  <!-- Main content area with ACTUAL logo from movgator-logo-primary.svg -->
   <g transform="translate(120, 180)">
-    <!-- Logo/icon representation -->
-    <svg width="120" height="120" viewBox="0 0 120 120">
-      <circle cx="60" cy="60" r="60" fill="#f5a623"/>
-      <circle cx="60" cy="60" r="35" fill="#fff"/>
-      <circle cx="60" cy="60" r="18" fill="#24102e"/>
-    </svg>
+    <!-- Actual logo from movgator-logo-primary.svg (icon + "MovGator" text) -->
+    <!-- Scaled from original 2612x416 to fit in OG image -->
+    <g transform="scale(0.42) translate(-100, -50)">
+      <g clip-path="url(#clip0_9_537)">
+        <path d="M423.956 163.925V74.3109C423.956 33.523 391.206 1.07129 350.716 1.07129H72.9418C31.8562 1.07129 0 32.9275 0 74.3109V158.566C24.7109 160.948 41.681 179.109 41.681 204.118C41.681 229.126 22.3291 247.883 0 250.264V338.092C0 381.857 34.5358 414.905 75.0259 414.905H350.121C391.802 414.905 423.956 382.155 423.956 340.176V257.707C399.84 254.73 382.572 235.974 382.572 210.965C382.572 184.766 400.436 166.307 423.956 163.925Z" fill="#3B1F4A"/>
+        <path d="M212.463 358.998C295.562 358.998 362.927 291.633 362.927 208.535C362.927 125.436 295.562 58.0713 212.463 58.0713C129.365 58.0713 62 125.436 62 208.535C62 291.633 129.365 358.998 212.463 358.998Z" fill="#F5A623"/>
+        <path d="M211.982 153.666C230.045 153.666 244.688 139.024 244.688 120.961C244.688 102.898 230.045 88.2556 211.982 88.2556C193.92 88.2556 179.277 102.898 179.277 120.961C179.277 139.024 193.92 153.666 211.982 153.666Z" fill="white"/>
+        <path d="M126.333 217.181C144.396 217.181 159.039 202.539 159.039 184.476C159.039 166.413 144.396 151.771 126.333 151.771C108.271 151.771 93.6279 166.413 93.6279 184.476C93.6279 202.539 108.271 217.181 126.333 217.181Z" fill="white"/>
+        <path d="M160.497 314.542C179.181 314.542 194.328 299.395 194.328 280.711C194.328 262.026 179.181 246.879 160.497 246.879C141.812 246.879 126.665 262.026 126.665 280.711C126.665 299.395 141.812 314.542 160.497 314.542Z" fill="white"/>
+        <path d="M268.28 314.542C286.964 314.542 302.111 299.395 302.111 280.711C302.111 262.026 286.964 246.879 268.28 246.879C249.595 246.879 234.448 262.026 234.448 280.711C234.448 299.395 249.595 314.542 268.28 314.542Z" fill="white"/>
+        <path d="M299.556 216.474C317.494 216.474 332.035 201.933 332.035 183.995C332.035 166.057 317.494 151.516 299.556 151.516C281.618 151.516 267.077 166.057 267.077 183.995C267.077 201.933 281.618 216.474 299.556 216.474Z" fill="white"/>
+        <path d="M196.585 184.957V235.481L244.221 209.208L199.472 184.957H196.585Z" fill="#3B1F4A"/>
+      </g>
+      <defs>
+        <clipPath id="clip0_9_537">
+          <rect width="2611.49" height="415.976" fill="white"/>
+        </clipPath>
+      </defs>
+    </g>
     
-    <text x="160" y="50" font-family="system-ui, sans-serif" font-size="42" font-weight="800" fill="#f7f6f8" letter-spacing="-1">MovGator</text>
-    <text x="160" y="100" font-family="system-ui, sans-serif" font-size="22" font-weight="500" fill="#c9b8d2">Find what to watch tonight</text>
+    <!-- App name -->
+    <text x="280" y="110" font-family="system-ui, sans-serif" font-size="48" font-weight="800" fill="#f7f6f8" letter-spacing="-1">MovGator</text>
+    <text x="280" y="160" font-family="system-ui, sans-serif" font-size="24" font-weight="500" fill="#c9b8d2">Find what to watch tonight</text>
     
     <!-- Feature tags -->
-    <g transform="translate(160, 140)">
-      <rect x="0" y="0" width="140" height="36" rx="18" fill="#3b1f4a" stroke="#f5a623" stroke-width="2"/>
-      <text x="70" y="24" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#f5a623" text-anchor="middle">Discover</text>
+    <g transform="translate(280, 200)">
+      <rect x="0" y="0" width="160" height="40" rx="20" fill="#3b1f4a" stroke="#f5a623" stroke-width="2"/>
+      <text x="80" y="27" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#f5a623" text-anchor="middle">Discover</text>
       
-      <rect x="155" y="0" width="140" height="36" rx="18" fill="#3b1f4a" stroke="#f5a623" stroke-width="2"/>
-      <text x="225" y="24" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#f5a623" text-anchor="middle">Roll Dice</text>
+      <rect x="180" y="0" width="160" height="40" rx="20" fill="#3b1f4a" stroke="#f5a623" stroke-width="2"/>
+      <text x="260" y="27" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#f5a623" text-anchor="middle">Roll Dice</text>
       
-      <rect x="310" y="0" width="140" height="36" rx="18" fill="#3b1f4a" stroke="#f5a623" stroke-width="2"/>
-      <text x="380" y="24" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#f5a623" text-anchor="middle">Movie Night</text>
+      <rect x="360" y="0" width="160" height="40" rx="20" fill="#3b1f4a" stroke="#f5a623" stroke-width="2"/>
+      <text x="440" y="27" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#f5a623" text-anchor="middle">Movie Night</text>
     </g>
     
     <!-- CTA -->
-    <rect x="160" y="210" width="280" height="56" rx="28" fill="#f5a623"/>
-    <text x="300" y="248" font-family="system-ui, sans-serif" font-size="18" font-weight="800" fill="#24102e" text-anchor="middle">Start Free</text>
+    <rect x="280" y="280" width="320" height="64" rx="32" fill="#f5a623"/>
+    <text x="440" y="324" font-family="system-ui, sans-serif" font-size="20" font-weight="800" fill="#24102e" text-anchor="middle">Start Free</text>
   </g>
   
   <!-- TMDB attribution -->

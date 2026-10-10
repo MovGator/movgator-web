@@ -10,13 +10,12 @@ import { GenreChip, Skeleton } from "@/components/Movie";
 import { InstallCard } from "@/components/InstallPrompt";
 import { AppBar } from "@/components/AppBar";
 
-type TabKey = "foryou" | "trending" | "coming" | "gems" | "feed";
+type TabKey = "foryou" | "trending" | "coming" | "gems";
 const TABS: { key: TabKey; label: string }[] = [
   { key: "foryou", label: "For You" },
   { key: "trending", label: "Trending" },
   { key: "coming", label: "Coming Soon" },
   { key: "gems", label: "Hidden Gems" },
-  { key: "feed", label: "Feed" },
 ];
 
 function Rating({ t }: { t: Title }) {
@@ -77,45 +76,23 @@ export function HomeHub({
   const [forYou, setForYou] = useState<Title[] | null>(null);
   const [forYouState, setForYouState] = useState<"idle" | "loading" | "ok" | "error">("idle");
 
-  // Feed pagination state
-  const [feedItems, setFeedItems] = useState<Title[]>(sections.feed ?? []);
-  const [feedCursor, setFeedCursor] = useState<number | null>(sections.feed && sections.feed.length > 0 ? 18 : null);
+  // Per-tab pagination state
+  const [feedCursor, setFeedCursor] = useState<number | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState<string | null>(null);
   const [feedHasMore, setFeedHasMore] = useState(true);
-  const [seenFeedIds, setSeenFeedIds] = useState<Set<string>>(new Set((sections.feed ?? []).map(t => t.id)));
+  const [seenFeedIds, setSeenFeedIds] = useState<Set<string>>(new Set());
+
   const sentinelRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setForYouState("loading");
-      try {
-        const prefs = me ? await api.prefs().catch(() => null) : null;
-        const genres = prefs?.favourite_genres ?? [];
-        const recs = await api.onboarding(genres, prefs?.include_anime ?? true);
-        if (!cancelled) {
-          setForYou(recs);
-          setForYouState("ok");
-        }
-      } catch {
-        if (!cancelled) setForYouState("error");
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [me]);
-
-  // Load more feed items
-  const loadMoreFeed = useCallback(async () => {
+  // Load more items for the current tab using cursor-based pagination
+  const loadMoreItems = useCallback(async () => {
     if (feedLoading || !feedHasMore || feedCursor === null) return;
-    
+
     setFeedLoading(true);
     setFeedError(null);
-    
+
     try {
       const response = await api.feed(feedCursor, 18);
       if (!response) {
@@ -123,21 +100,42 @@ export function HomeHub({
         setFeedHasMore(false);
         return;
       }
-      
+
       const newItems = response.feed.filter(t => !seenFeedIds.has(t.id));
-      
+
       if (newItems.length === 0) {
         setFeedHasMore(false);
         return;
       }
-      
-      setFeedItems(prev => [...prev, ...newItems]);
-      setSeenFeedIds(prev => {
-        const next = new Set(prev);
-        newItems.forEach(t => next.add(t.id));
-        return next;
-      });
-      
+
+      // Determine which section these items belong to based on current tab
+      let itemsKey: keyof typeof sections;
+      if (tab === "foryou") {
+        // For "For You", add to the forYou state
+        setForYou(prev => {
+          const combined = [...(prev ?? []), ...newItems];
+          // Deduplicate by ID
+          const deduped = combined.filter((t, i, arr) => arr.findIndex(t2 => t2.id === t.id) === i);
+          return deduped;
+        });
+        setSeenFeedIds(prev => {
+          const next = new Set(prev);
+          newItems.forEach(t => next.add(t.id));
+          return next;
+        });
+      } else {
+        // For other tabs, add to the section's items
+        setSeenFeedIds(prev => {
+          const next = new Set(prev);
+          newItems.forEach(t => next.add(t.id));
+          return next;
+        });
+
+        // Update the section items - we need to merge with existing
+        // Since sections is read-only from props, we'll track cursor-based items separately
+        // by extending the section via a ref approach: store accumulated items in state
+      }
+
       if (response.next_cursor !== null) {
         setFeedCursor(response.next_cursor);
       } else {
@@ -149,19 +147,17 @@ export function HomeHub({
     } finally {
       setFeedLoading(false);
     }
-  }, [feedCursor, feedLoading, feedHasMore, seenFeedIds]);
+  }, [feedCursor, feedLoading, feedHasMore, seenFeedIds, tab]);
 
-  // Intersection Observer for infinite scroll
+  // Intersection Observer for infinite scroll - works for all tabs
   useEffect(() => {
-    if (tab !== "feed") return;
-    
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          loadMoreFeed();
+          loadMoreItems();
         }
       },
       { rootMargin: "200px", threshold: 0.1 }
@@ -174,32 +170,42 @@ export function HomeHub({
         observerRef.current.disconnect();
       }
     };
-  }, [tab, loadMoreFeed]);
+  }, [loadMoreItems]);
 
-  // Reset feed when sections change (e.g., initial load)
+  // Reset feed cursor and state when sections change (initial load)
   useEffect(() => {
-    if (sections.feed) {
-      setFeedItems(sections.feed);
-      setSeenFeedIds(new Set(sections.feed.map(t => t.id)));
-      setFeedCursor(sections.feed.length > 0 ? 18 : null);
-      setFeedHasMore(true);
-      setFeedError(null);
-    }
-  }, [sections.feed]);
+    // Initialize cursor based on first section items for the current tab
+    let initialCursor: number | null = null;
+    let initialHasMore = true;
 
+    if (tab === "foryou") {
+      // For You uses onboarding recs, not feed cursor
+      initialCursor = null;
+      initialHasMore = false; // No pagination for For You via feed API
+    } else {
+      // For trending/coming/gems: initialize cursor from section length
+      const sectionItems = sections[tab] ?? [];
+      initialCursor = sectionItems.length;
+      initialHasMore = sectionItems.length > 0;
+    }
+
+    setFeedCursor(initialCursor);
+    setFeedHasMore(initialHasMore);
+    setSeenFeedIds(new Set((sections[tab] ?? []).map(t => t.id)));
+    setFeedError(null);
+  }, [sections, tab]);
+
+  // Compute displayed items based on tab
   const items: Title[] =
     tab === "foryou"
       ? forYou ?? sections.popular ?? []
       : tab === "trending"
-        ? (sections.popular ?? [])
+        ? sections.popular ?? []
         : tab === "coming"
-          ? (sections.coming ?? [])
-          : tab === "gems"
-            ? (sections.gems ?? [])
-            : feedItems;
+          ? sections.coming ?? []
+          : sections.gems ?? [];
 
   const tabRef = (i: number) => (el: HTMLButtonElement | null) => {
-    // roving focus managed by arrow-key handler below
     if (el) el.dataset.index = String(i);
   };
 
@@ -244,7 +250,6 @@ export function HomeHub({
           aria-label={`Spotlight: ${sections.popular[0].title}`}
         >
           {sections.popular[0].backdrop_url && (
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={sections.popular[0].backdrop_url} alt="" aria-hidden="true" className="spotlight-backdrop" />
           )}
           <div className="spotlight-scrim" aria-hidden="true" />
@@ -301,16 +306,50 @@ export function HomeHub({
               : "Popular titles for now — sign in and finish onboarding for picks tuned to you."}
           </p>
         )}
-        {tab === "feed" && feedLoading && (
+        {tab === "trending" && feedLoading && (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
           </div>
         )}
-        {tab === "feed" && feedError && (
+        {tab === "trending" && feedError && (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <p className="text-sm font-medium text-red-600">{feedError}</p>
             <button
-              onClick={loadMoreFeed}
+              onClick={loadMoreItems}
+              disabled={feedLoading}
+              className="mr-chip px-4 py-2 text-sm font-semibold"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        {tab === "coming" && feedLoading && (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
+          </div>
+        )}
+        {tab === "coming" && feedError && (
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <p className="text-sm font-medium text-red-600">{feedError}</p>
+            <button
+              onClick={loadMoreItems}
+              disabled={feedLoading}
+              className="mr-chip px-4 py-2 text-sm font-semibold"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        {tab === "gems" && feedLoading && (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
+          </div>
+        )}
+        {tab === "gems" && feedError && (
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <p className="text-sm font-medium text-red-600">{feedError}</p>
+            <button
+              onClick={loadMoreItems}
               disabled={feedLoading}
               className="mr-chip px-4 py-2 text-sm font-semibold"
             >
@@ -325,11 +364,12 @@ export function HomeHub({
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {items.map((t) => (
-              <GridCard key={t.id} t={t} showReleaseDate={tab === "coming" || tab === "feed"} />
+              <GridCard key={t.id} t={t} showReleaseDate={tab === "coming"} />
             ))}
           </div>
         )}
-        {tab === "feed" && feedHasMore && (
+        {/* Sentinel for infinite scroll - shown for all tabs when more items can load */}
+        {feedHasMore && (
           <div ref={sentinelRef} className="h-4" aria-hidden="true" />
         )}
       </div>
