@@ -40,9 +40,12 @@ test("home tabs switch content; watchlist guards guests", async ({ page }) => {
   const gems = tablist.getByRole("tab", { name: "Hidden Gems" });
   await gems.click();
   await expect(gems).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator("#home-tabpanel")).toContainText(/Glass Orchard|Small Mercies|Beekeeper|Detour|Mercies|Pines|Ramen|Sonata|Theatre/i);
+  const panel = page.locator("#home-tabpanel");
+  // Content is live catalogue data (seed or TMDB) — assert switching, not titles.
+  await expect.poll(async () => (await panel.innerText()).length).toBeGreaterThan(20);
+  const gemsText = await panel.innerText();
   await tablist.getByRole("tab", { name: "Trending" }).click();
-  await expect(page.locator("#home-tabpanel")).toContainText(/Midnight Cartographer|Copper Sky/i);
+  await expect.poll(async () => await panel.innerText()).not.toBe(gemsText);
 
   await page.goto("/watchlist");
   await expect(page.getByRole("heading", { name: /my watchlist/i })).toBeVisible();

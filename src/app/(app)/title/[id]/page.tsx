@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { api } from "@/lib/api";
+import type { Title } from "@/lib/types";
 import { TitleActions } from "./actions";
 import { PosterArt } from "@/components/PosterArt";
 import { GenreChip, PosterRail } from "@/components/Movie";
@@ -29,12 +30,11 @@ export default async function TitlePage({ params }: { params: Promise<{ id: stri
     t.provider === "tmdb" && t.tmdb_rating != null
       ? { source: "TMDB community score", value: `${t.tmdb_rating.toFixed(1)} / 10` }
       : null;
-  let related: Awaited<ReturnType<typeof api.search>>["items"] = [];
+  // Related: TMDB recommendations endpoint via the backend (genre
+  // fallback server-side) — never hardcoded, always catalogue records.
+  let related: Title[] = [];
   try {
-    if (t.genres[0]) {
-      const r = await api.search({ genre: t.genres[0], limit: 7 });
-      related = r.items.filter((x) => x.id !== t.id).slice(0, 6);
-    }
+    related = await api.related(id);
   } catch {
     related = [];
   }

@@ -74,6 +74,7 @@ export const api = {
     );
   },
   title: (id: string) => req<Title>(`/api/v1/titles/${id}`),
+  related: (id: string) => req<Title[]>(`/api/v1/titles/${id}/related`),
   genres: () => req<Genre[]>(`/api/v1/genres`),
   onboarding: (genre_ids: string[], include_anime: boolean) =>
     req<Title[]>(`/api/v1/onboarding/recommendations`, {
