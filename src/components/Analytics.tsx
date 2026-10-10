@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useCookieConsent } from "@/components/CookieConsent";
-import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
 declare global {
   interface Window {
