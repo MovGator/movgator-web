@@ -10,4 +10,5 @@ playwright-report/
 # Env (placeholders only in .env.example)
 .env.local
 .env
+.env.example
 !.env.example
