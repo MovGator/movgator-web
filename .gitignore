@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+tsconfig.tsbuildinfo
+test-results/
+playwright-report/
+.DS_Store
+*.log
+
+# Env (placeholders only in .env.example)
+.env.local
+.env
+!.env.example
