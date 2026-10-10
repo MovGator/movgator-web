@@ -50,10 +50,10 @@ export function PosterRail({ heading, items, href }: { heading: string; items: T
   );
 }
 
-export function Skeleton({ label = "Loading" }: { label?: string }) {
+export function Skeleton({ label = "Loading", count = 5 }: { label?: string; count?: number }) {
   return (
-    <div role="status" aria-label={label} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, i) => (
+    <div role="status" aria-label={label} className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="skeleton aspect-[2/3] rounded-lg" />
       ))}
     </div>

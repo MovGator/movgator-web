@@ -108,11 +108,10 @@ export const api = {
   title: (id: string) => req<Title>(`/api/v1/titles/${id}`),
   related: (id: string) => req<Title[]>(`/api/v1/titles/${id}/related`),
   genres: () => req<Genre[]>(`/api/v1/genres`),
-  onboarding: (genre_ids: string[], include_anime: boolean) =>
-    req<Title[]>(`/api/v1/onboarding/recommendations`, {
-      method: "POST",
-      body: JSON.stringify({ genre_ids, include_anime }),
-    }),
+  onboarding: (genre_ids: string[], include_anime: boolean, cursor = 0, limit = 18) =>
+    req<{ items: Title[]; next_cursor: number | null; total: number }>(
+      `/api/v1/onboarding/recommendations?genre_ids=${genre_ids.join(",")}&include_anime=${include_anime}&cursor=${cursor}&limit=${limit}`
+    ),
   dice: (body: object) =>
     req<{ pick: Title | null; candidate_count: number }>(`/api/v1/dice/roll`, {
       method: "POST",

@@ -28,8 +28,8 @@ export default function OnboardingPage() {
 
   const start = async () => {
     try {
-      const recs = await api.onboarding(picked, true);
-      setCards(recs);
+      const recs = await api.onboarding(picked, true, 0, 5);
+      setCards(recs.items);
       setIndex(0);
       setStep("swipe");
     } catch {

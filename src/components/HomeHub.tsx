@@ -19,7 +19,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 const TAB_TO_SECTION: Record<TabKey, string> = {
-  foryou: "popular",
+  foryou: "foryou",
   trending: "popular",
   coming: "coming",
   gems: "gems",
@@ -80,8 +80,15 @@ export function HomeHub({
 }) {
   const { me } = useAuth();
   const [tab, setTab] = useState<TabKey>("foryou");
-  const [forYou, setForYou] = useState<Title[] | null>(null);
+  const [forYou, setForYou] = useState<Title[]>([]);
   const [forYouState, setForYouState] = useState<"idle" | "loading" | "ok" | "error">("idle");
+
+  // For You pagination state
+  const [forYouCursor, setForYouCursor] = useState<number | null>(null);
+  const [forYouHasMore, setForYouHasMore] = useState(true);
+  const [forYouLoading, setForYouLoading] = useState(false);
+  const [forYouError, setForYouError] = useState<string | null>(null);
+  const [seenForYouIds, setSeenForYouIds] = useState<Set<string>>(new Set());
 
   // Per-tab pagination state for sections
   const [sectionCursors, setSectionCursors] = useState<Record<string, number | null>>({});
@@ -139,6 +146,50 @@ export function HomeHub({
     }
   }, [sectionCursors, sectionLoading, sectionHasMore, seenSectionIds]);
 
+  // Load more For You items
+  const loadMoreForYou = useCallback(async () => {
+    if (forYouLoading || !forYouHasMore || forYouCursor === null) return;
+
+    setForYouLoading(true);
+    setForYouError(null);
+
+    try {
+      const prefs = me ? await api.prefs().catch(() => null) : null;
+      const genres = prefs?.favourite_genres ?? [];
+      const response = await api.onboarding(genres, prefs?.include_anime ?? true, forYouCursor, 18);
+      if (!response) {
+        setForYouError("Failed to load more movies");
+        setForYouHasMore(false);
+        return;
+      }
+
+      const newItems = response.items.filter((t: Title) => !seenForYouIds.has(t.id));
+
+      if (newItems.length === 0) {
+        setForYouHasMore(false);
+        return;
+      }
+
+      setForYou(prev => [...prev, ...newItems]);
+      setSeenForYouIds(prev => {
+        const next = new Set(prev);
+        newItems.forEach((t: Title) => next.add(t.id));
+        return next;
+      });
+
+      if (response.next_cursor !== null) {
+        setForYouCursor(response.next_cursor);
+      } else {
+        setForYouHasMore(false);
+      }
+    } catch (err) {
+      setForYouError(err instanceof Error ? err.message : "Failed to load more movies");
+      setForYouHasMore(false);
+    } finally {
+      setForYouLoading(false);
+    }
+  }, [forYouCursor, forYouLoading, forYouHasMore, seenForYouIds, me]);
+
   // Intersection Observer for infinite scroll
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -148,7 +199,9 @@ export function HomeHub({
       (entries) => {
         if (entries[0].isIntersecting) {
           const sectionKey = TAB_TO_SECTION[tab];
-          if (sectionKey !== "popular" || tab === "trending") {
+          if (sectionKey === "foryou") {
+            loadMoreForYou();
+          } else {
             loadMoreSection(sectionKey);
           }
         }
@@ -163,7 +216,7 @@ export function HomeHub({
         observerRef.current.disconnect();
       }
     };
-  }, [tab, loadMoreSection]);
+  }, [tab, loadMoreSection, loadMoreForYou]);
 
   // Initialize section state from initial sections prop
   useEffect(() => {
@@ -186,10 +239,45 @@ export function HomeHub({
     setSectionError({});
   }, [sections]);
 
+  // Initialize For You state
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setForYouState("loading");
+      setForYou([]);
+      setSeenForYouIds(new Set());
+      setForYouCursor(null);
+      setForYouHasMore(true);
+      setForYouError(null);
+      try {
+        const prefs = me ? await api.prefs().catch(() => null) : null;
+        const genres = prefs?.favourite_genres ?? [];
+        const response = await api.onboarding(genres, prefs?.include_anime ?? true, 0, 18);
+        if (!cancelled && response) {
+          setForYou(response.items);
+          setSeenForYouIds(new Set(response.items.map(t => t.id)));
+          setForYouCursor(response.next_cursor);
+          setForYouHasMore(response.next_cursor !== null);
+          setForYouState("ok");
+        } else if (!cancelled) {
+          setForYou([]);
+          setForYouState("ok");
+        }
+      } catch {
+        if (!cancelled) {
+          setForYou([]);
+          setForYouState("error");
+        }
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [me]);
+
   // Compute displayed items based on tab
   const items: Title[] =
     tab === "foryou"
-      ? forYou ?? sectionItems.popular ?? sections.popular ?? []
+      ? forYou
       : tab === "trending"
         ? sectionItems.popular ?? sections.popular ?? []
         : tab === "coming"
@@ -197,29 +285,9 @@ export function HomeHub({
           : sectionItems.gems ?? sections.gems ?? [];
 
   const currentSectionKey = TAB_TO_SECTION[tab];
-  const isLoading = sectionLoading[currentSectionKey] || false;
-  const hasError = sectionError[currentSectionKey] || null;
-  const hasMore = sectionHasMore[currentSectionKey] || false;
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setForYouState("loading");
-      try {
-        const prefs = me ? await api.prefs().catch(() => null) : null;
-        const genres = prefs?.favourite_genres ?? [];
-        const recs = await api.onboarding(genres, prefs?.include_anime ?? true);
-        if (!cancelled) {
-          setForYou(recs);
-          setForYouState("ok");
-        }
-      } catch {
-        if (!cancelled) setForYouState("error");
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [me]);
+  const isLoading = currentSectionKey === "foryou" ? forYouLoading : sectionLoading[currentSectionKey] || false;
+  const hasError = currentSectionKey === "foryou" ? forYouError : sectionError[currentSectionKey] || null;
+  const hasMore = currentSectionKey === "foryou" ? forYouHasMore : sectionHasMore[currentSectionKey] || false;
 
   const tabRef = (i: number) => (el: HTMLButtonElement | null) => {
     if (el) el.dataset.index = String(i);
@@ -309,7 +377,7 @@ export function HomeHub({
       </div>
 
       <div id="home-tabpanel" role="tabpanel" aria-live="polite" className="mt-4">
-        {tab === "foryou" && forYouState === "loading" && <Skeleton label="Loading your picks" />}
+        {tab === "foryou" && forYouState === "loading" && <Skeleton label="Loading your picks" count={5} />}
         {tab === "foryou" && forYouState === "error" && (
           <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
             Couldn&rsquo;t load personal picks — showing popular titles instead.
@@ -331,7 +399,7 @@ export function HomeHub({
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <p className="text-sm font-medium text-red-600">{hasError}</p>
             <button
-              onClick={() => loadMoreSection(currentSectionKey)}
+              onClick={() => currentSectionKey === "foryou" ? loadMoreForYou() : loadMoreSection(currentSectionKey)}
               disabled={isLoading}
               className="mr-chip px-4 py-2 text-sm font-semibold"
             >
