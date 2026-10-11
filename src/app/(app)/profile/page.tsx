@@ -296,13 +296,23 @@ function HubDashboard() {
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [savedCount, setSavedCount] = useState<number | null>(null);
   const [ratingCount, setRatingCount] = useState<number | null>(null);
+  const [statsDone, setStatsDone] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    api.watchlist().then((r) => { if (!cancelled) setSavedCount(r.length); }).catch(() => { if (!cancelled) setSavedCount(null); });
-    api.ratings().then((r) => { if (!cancelled) setRatingCount(r.length); }).catch(() => { if (!cancelled) setRatingCount(null); });
+    let pending = 2;
+    const tick = () => { if (!cancelled && --pending === 0) setStatsDone(true); };
+    api.watchlist().then((r) => { if (!cancelled) setSavedCount(r.length); }).catch(() => {}).finally(tick);
+    api.ratings().then((r) => { if (!cancelled) setRatingCount(r.length); }).catch(() => {}).finally(tick);
     return () => { cancelled = true; };
   }, []);
+
+  const statValue = (n: number | null) =>
+    n ?? (statsDone ? (
+      <span style={{ color: "var(--mr-ink-soft)" }}>–</span>
+    ) : (
+      <span className="skeleton mx-auto block h-7 w-10 rounded" aria-hidden="true" />
+    ));
 
   const handleAvatarSave = async (newSeed: string) => {
     await api.patchMe({ avatar_seed: newSeed });
@@ -331,26 +341,25 @@ function HubDashboard() {
 
       {/* Navigation Tabs */}
       <nav className="mt-6 mr-card p-2" aria-label="Profile sections">
-        <div className="flex gap-2 overflow-x-auto" role="tablist">
+        <div className="grid grid-cols-3 gap-2" role="tablist">
           <Link
             href="/profile/info"
             role="tab"
-            className="flex-1 mr-chip flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold whitespace-nowrap sm:px-4"
-            style={{ background: "var(--mr-plum)", color: "#fff" }}
+            className="mr-chip flex items-center justify-center px-2 py-3 text-[13px] sm:text-sm font-semibold text-center leading-tight"
           >
-            <span>Profile Information</span>
+            <span>Profile</span>
           </Link>
           <Link
             href="/watchlist"
             role="tab"
-            className="flex-1 mr-chip flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold whitespace-nowrap sm:px-4"
+            className="mr-chip flex items-center justify-center px-2 py-3 text-[13px] sm:text-sm font-semibold text-center leading-tight"
           >
             <span>Watchlist</span>
           </Link>
           <Link
             href="/profile/settings"
             role="tab"
-            className="flex-1 mr-chip flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold whitespace-nowrap sm:px-4"
+            className="mr-chip flex items-center justify-center px-2 py-3 text-[13px] sm:text-sm font-semibold text-center leading-tight"
           >
             <span>Settings</span>
           </Link>
@@ -360,11 +369,11 @@ function HubDashboard() {
       {/* Stats */}
       <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-4">
         <Link href="/watchlist" className="mr-card p-3 sm:p-4 text-center group">
-          <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--mr-plum)" }}>{savedCount ?? "–"}</p>
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--mr-plum)" }}>{statValue(savedCount)}</p>
           <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Saved Titles</p>
         </Link>
         <Link href="/profile/ratings" className="mr-card p-3 sm:p-4 text-center group">
-          <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--mr-gold)" }}>{ratingCount ?? "–"}</p>
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--mr-gold)" }}>{statValue(ratingCount)}</p>
           <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Ratings Given</p>
         </Link>
         <Link href="/movie-night" className="mr-card p-3 sm:p-4 text-center group">

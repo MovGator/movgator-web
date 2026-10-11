@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import jsQR from "jsqr";
 import { Button } from "@/components/Button";
 
 function extractNightTarget(raw: string): { id: string; invite: string } | null {
@@ -15,13 +16,21 @@ function extractNightTarget(raw: string): { id: string; invite: string } | null 
   }
 }
 
-type Detector = { detect(v: HTMLVideoElement): Promise<{ rawValue: string }[]> };
+type NativeDetector = { detect(v: HTMLVideoElement): Promise<{ rawValue: string }[]> };
 
 export function QrScanner({ onDetected }: { onDetected: (target: { id: string; invite: string }) => void }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const onDetectedRef = useRef(onDetected);
   onDetectedRef.current = onDetected;
-  const [supported] = useState(() => typeof window !== "undefined" && "BarcodeDetector" in window);
+  // Camera access is the requirement; decoding falls back to a bundled
+  // JS decoder where the native BarcodeDetector API is missing (iOS Safari).
+  const [supported] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      !!navigator.mediaDevices?.getUserMedia &&
+      !!document.createElement("canvas").getContext("2d")
+  );
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
 
@@ -47,6 +56,55 @@ export function QrScanner({ onDetected }: { onDetected: (target: { id: string; i
         }
         return;
       }
+      const nativeSupported = typeof window !== "undefined" && "BarcodeDetector" in window;
+      let detectFrame: ((video: HTMLVideoElement) => Promise<string | null>) | null = null;
+      if (nativeSupported) {
+        try {
+          const Detector = (window as unknown as { BarcodeDetector: new (opts: { formats: string[] }) => NativeDetector }).BarcodeDetector;
+          const detector = new Detector({ formats: ["qr_code"] });
+          detectFrame = async (video) => {
+            const codes = await detector.detect(video);
+            return codes?.[0]?.rawValue ?? null;
+          };
+        } catch {
+          detectFrame = null;
+        }
+      }
+      if (!detectFrame) {
+        // Fallback decoder for browsers without BarcodeDetector (e.g. iOS
+        // Safari): downscaled frames, checked a few times per second.
+        if (!canvasRef.current) canvasRef.current = document.createElement("canvas");
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) {
+          if (!cancelled) {
+            setError("QR scanning isn't supported in this browser. Paste the invitation link instead.");
+            setScanning(false);
+          }
+          return;
+        }
+        let lastCheck = 0;
+        detectFrame = async (video) => {
+          const now = Date.now();
+          if (now - lastCheck < 400) return null;
+          lastCheck = now;
+          const vw = video.videoWidth;
+          const vh = video.videoHeight;
+          if (!vw || !vh) return null;
+          const scale = Math.min(1, 640 / Math.max(vw, vh));
+          const w = Math.max(1, Math.round(vw * scale));
+          const h = Math.max(1, Math.round(vh * scale));
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(video, 0, 0, w, h);
+          try {
+            const imageData = ctx.getImageData(0, 0, w, h);
+            return jsQR(imageData.data, w, h)?.data ?? null;
+          } catch {
+            return null;
+          }
+        };
+      }
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         if (cancelled) {
@@ -62,14 +120,11 @@ export function QrScanner({ onDetected }: { onDetected: (target: { id: string; i
         }
         video.srcObject = stream;
         await video.play();
-        const Detector = (window as unknown as { BarcodeDetector: new (opts: { formats: string[] }) => Detector }).BarcodeDetector;
-        const detector = new Detector({ formats: ["qr_code"] });
         const tick = async () => {
           if (cancelled) return;
           try {
-            if (video.readyState >= 2) {
-              const codes = await detector.detect(video);
-              const raw = codes?.[0]?.rawValue;
+            if (video.readyState >= 2 && detectFrame) {
+              const raw = await detectFrame(video);
               if (raw) {
                 const target = extractNightTarget(raw);
                 if (target) {
@@ -138,7 +193,6 @@ export function QrScanner({ onDetected }: { onDetected: (target: { id: string; i
           aria-label="QR code camera preview"
         />
       )}
-      {!supported && <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>This browser can’t scan QR codes. Paste the invitation link below.</p>}
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
     </div>
   );
