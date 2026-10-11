@@ -144,6 +144,12 @@ const effectiveGenre = genre || moodGenres.join(",");
     router.push(`/discover?${next.toString()}`);
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Clear genre and mood filters when searching by name so search works independently
+    set({ q: draft, genre: "", mood: "" });
+  };
+
   return (
     <div>
       <AppBar title="Discover" showBack={false} brand />
@@ -151,10 +157,7 @@ const effectiveGenre = genre || moodGenres.join(",");
       <form
         role="search"
         className="mt-4 flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          set({ q: draft });
-        }}
+        onSubmit={handleSearch}
       >
         <label htmlFor="discover-q" className="sr-only">
           Search titles
