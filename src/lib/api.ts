@@ -42,7 +42,7 @@ async function refreshAuth(): Promise<import("./types").Me> {
   return refreshPromise;
 }
 
-async function req<T>(path: string, init?: RequestInit, isRetry = false): Promise<T> {
+export async function req<T>(path: string, init?: RequestInit, isRetry = false): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...((init?.headers as Record<string, string>) ?? {}),
