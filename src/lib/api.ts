@@ -127,7 +127,7 @@ export const api = {
     req<import("./types").Me>(`/api/v1/auth/login`, { method: "POST", body: JSON.stringify(body) }),
   logout: () => req<{ ok: boolean }>(`/api/v1/auth/logout`, { method: "POST", body: "{}" }),
   refreshSession: () => req<import("./types").Me>(`/api/v1/auth/refresh`, { method: "POST", body: "{}" }),
-  googleUrl: () => req<{ url: string }>(`/api/v1/auth/google/url`),
+  googleUrl: (next = "/") => req<{ url: string }>(`/api/v1/auth/google/url?next=${encodeURIComponent(next)}`),
   watchlist: () => req<Title[]>(`/api/v1/me/watchlist`),
   watchlistAdd: (title_id: string) =>
     req<{ ok: boolean }>(`/api/v1/me/watchlist`, { method: "POST", body: JSON.stringify({ title_id }) }),

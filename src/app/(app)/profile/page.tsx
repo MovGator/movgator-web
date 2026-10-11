@@ -47,7 +47,7 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
 
   const google = async () => {
     try {
-      const { url } = await api.googleUrl();
+      const { url } = await api.googleUrl(next);
       window.location.href = url;
     } catch (err) {
       setError(
