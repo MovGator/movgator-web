@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookmarkSimple,
   CaretDoubleLeft,
@@ -17,7 +17,6 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { Avatar } from "./Avatar";
 import { Logo, LogoIcon } from "./Logo";
-import { Dialog } from "./Dialog";
 
 interface NavItem {
   href: string;
@@ -109,6 +108,8 @@ export function AppSidebar() {
   const { me, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     try {
       setCollapsed(localStorage.getItem(SIDEBAR_KEY) === "1");
@@ -116,6 +117,28 @@ export function AppSidebar() {
       /* private mode: stay expanded */
     }
   }, []);
+  // Close the account menu on Escape or outside click; return focus to the button.
+  useEffect(() => {
+    if (!menuOpen) return;
+    menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    const onPointer = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [menuOpen]);
   const toggle = () => {
     setCollapsed((c) => {
       try {
@@ -191,47 +214,52 @@ export function AppSidebar() {
       ))}
 
       <div className="app-sidebar-me">
-        {me ? (
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            aria-label={`Profile menu for ${me.display_name}`}
-            title={me.display_name}
-            className="app-sidebar-user"
-          >
-            <Avatar name={me.display_name} url={me.avatar_url} size={32} />
-            <span className="app-side-label">{me.display_name}</span>
-          </button>
-        ) : (
-          <Link href="/profile" aria-label="Sign in" title="Sign in" className="app-side-item">
-            <PIcon icon={User} active={isActive(path, "/profile")} size={23} />
-            <span className="app-side-label">Sign in</span>
-          </Link>
-        )}
-      </div>
-
-      <Dialog open={menuOpen} onClose={() => setMenuOpen(false)} title="Account">
-        <div className="flex flex-col gap-2">
-          <Link
-            href="/profile"
-            onClick={() => setMenuOpen(false)}
-            className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start"
-            aria-label="Help & Settings"
-          >
-            <User size={20} weight="regular" aria-hidden="true" />
-            <span>Help & Settings</span>
-          </Link>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start text-red-600 hover:bg-red-50"
-            aria-label="Log out"
-          >
-            <User size={20} weight="regular" aria-hidden="true" />
-            <span>Log Out</span>
-          </button>
+        <div className="app-user-anchor" ref={menuRef}>
+          {me ? (
+            <button
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label={`Profile menu for ${me.display_name}`}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              title={me.display_name}
+              className="app-sidebar-user"
+            >
+              <Avatar name={me.display_name} url={me.avatar_url} size={32} />
+              <span className="app-side-label">{me.display_name}</span>
+            </button>
+          ) : (
+            <Link href="/profile" aria-label="Sign in" title="Sign in" className="app-side-item">
+              <PIcon icon={User} active={isActive(path, "/profile")} size={23} />
+              <span className="app-side-label">Sign in</span>
+            </Link>
+          )}
+          {me && menuOpen && (
+            <div className="app-user-menu" role="menu" aria-label="Account menu">
+              <p className="app-user-menu-name" aria-hidden="true">{me.display_name}</p>
+              <Link
+                href="/profile"
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+                className="app-user-menu-item"
+              >
+                <User size={18} weight="regular" aria-hidden="true" />
+                <span>Help &amp; Settings</span>
+              </Link>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleSignOut}
+                className="app-user-menu-item app-user-menu-danger"
+              >
+                <User size={18} weight="regular" aria-hidden="true" />
+                <span>Log Out</span>
+              </button>
+            </div>
+          )}
         </div>
-      </Dialog>
+      </div>
     </nav>
   );
 }
@@ -240,7 +268,11 @@ export function AppSidebar() {
 
 export function AppTopbar() {
   const router = useRouter();
+  const path = usePathname();
   const [q, setQ] = useState("");
+  // Discover and Watchlist render their own search bars — a second global
+  // one here would duplicate them, so the topbar stays hidden on those routes.
+  if (path === "/discover" || path === "/watchlist") return null;
   return (
     <div className="app-topbar" role="search">
       <MagnifyingGlass size={18} weight="regular" aria-hidden="true" className="app-topbar-icon" />

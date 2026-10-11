@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, Key, Shield, Eye, Palette, File, Info, Trash, User, Envelope, Bell, Globe, Gear, List } from "@phosphor-icons/react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -25,6 +25,28 @@ export default function SettingsContent() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  type SettingsTab = "account" | "security" | "filters" | "theme" | "privacy" | "support";
+  const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
+    { id: "account", label: "Account", icon: <User size={16} weight="regular" aria-hidden="true" /> },
+    { id: "security", label: "Security", icon: <Shield size={16} weight="regular" aria-hidden="true" /> },
+    { id: "filters", label: "Filters", icon: <Eye size={16} weight="regular" aria-hidden="true" /> },
+    { id: "theme", label: "Theme", icon: <Palette size={16} weight="regular" aria-hidden="true" /> },
+    { id: "privacy", label: "Privacy", icon: <File size={16} weight="regular" aria-hidden="true" /> },
+    { id: "support", label: "Support", icon: <Info size={16} weight="regular" aria-hidden="true" /> },
+  ];
+  const TAB_IDS = TABS.map((t) => t.id);
+  const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
+    if (typeof window === "undefined") return "account";
+    const hash = window.location.hash.replace("#", "");
+    return (TAB_IDS as string[]).includes(hash) ? (hash as SettingsTab) : "account";
+  });
+  const selectTab = (tab: SettingsTab) => {
+    setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${tab}`);
+    }
+  };
 
   useEffect(() => {
     if (me) setName(me.display_name);
@@ -84,14 +106,32 @@ export default function SettingsContent() {
     <div className="mx-auto max-w-3xl">
       <AppBar title="Settings" backFallback="/profile" />
 
-      <nav className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Settings sections">
-        {[["account", "Account"], ["security", "Security"], ["filters", "Filters"], ["theme", "Theme"], ["privacy", "Privacy"], ["support", "Support"]].map(([href, label]) => (
-          <a key={href} href={`#${href}`} className="mr-chip px-3 py-1.5 text-sm font-medium shrink-0">{label}</a>
-        ))}
-      </nav>
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Settings sections">
+        {TABS.map((t) => {
+          const active = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              id={`settings-tab-${t.id}`}
+              aria-selected={active}
+              aria-controls={`settings-panel-${t.id}`}
+              tabIndex={active ? 0 : -1}
+              onClick={() => selectTab(t.id)}
+              className="mr-chip inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors"
+              style={active ? { background: "var(--mr-plum)", color: "#fff", borderColor: "transparent" } : undefined}
+            >
+              {t.icon}
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Account Info Section */}
-      <section id="account" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
+      {activeTab === "account" && (
+      <section id="account" role="tabpanel" aria-labelledby="settings-tab-account" className="mt-6 mr-card p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-plum)", color: "#fff" }}>
             <User size={20} weight="regular" aria-hidden="true" />
@@ -120,8 +160,10 @@ export default function SettingsContent() {
         </form>
       </section>
 
+      )}
       {/* Security Section */}
-      <section id="security" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
+      {activeTab === "security" && (
+      <section id="security" role="tabpanel" aria-labelledby="settings-tab-security" className="mt-6 mr-card p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-gold)", color: "#24102e" }}>
             <Shield size={20} weight="regular" aria-hidden="true" />
@@ -151,8 +193,10 @@ export default function SettingsContent() {
         </div>
       </section>
 
+      )}
       {/* Content Filters Section */}
-      <section id="filters" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
+      {activeTab === "filters" && (
+      <section id="filters" role="tabpanel" aria-labelledby="settings-tab-filters" className="mt-6 mr-card p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-ink)", color: "#fff" }}>
             <Eye size={20} weight="regular" aria-hidden="true" />
@@ -184,8 +228,10 @@ export default function SettingsContent() {
         </p>
       </section>
 
+      )}
       {/* Theme / Skin Section */}
-      <section id="theme" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
+      {activeTab === "theme" && (
+      <section id="theme" role="tabpanel" aria-labelledby="settings-tab-theme" className="mt-6 mr-card p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-plum)", color: "#fff" }}>
             <Palette size={20} weight="regular" aria-hidden="true" />
@@ -201,8 +247,10 @@ export default function SettingsContent() {
         </p>
       </section>
 
+      )}
       {/* Privacy Policy & Data Section */}
-      <section id="privacy" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
+      {activeTab === "privacy" && (
+      <section id="privacy" role="tabpanel" aria-labelledby="settings-tab-privacy" className="mt-6 mr-card p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-gold)", color: "#24102e" }}>
             <File size={20} weight="regular" aria-hidden="true" />
@@ -251,8 +299,10 @@ export default function SettingsContent() {
         </Dialog>
       </section>
 
+      )}
       {/* Support & Info Section */}
-      <section id="support" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
+      {activeTab === "support" && (
+      <section id="support" role="tabpanel" aria-labelledby="settings-tab-support" className="mt-6 mr-card p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-ink)", color: "#fff" }}>
             <Info size={20} weight="regular" aria-hidden="true" />
@@ -285,6 +335,7 @@ export default function SettingsContent() {
           <p className="mt-2">© 2026 MovGator. All rights reserved.</p>
         </div>
       </section>
+      )}
     </div>
   );
 }

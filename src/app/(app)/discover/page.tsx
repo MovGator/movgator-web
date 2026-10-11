@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MagnifyingGlass, Funnel, X, CaretDown, CaretUp } from "@phosphor-icons/react";
+import { MagnifyingGlass, Funnel, X, CaretDown } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { MOODS, genresForMood } from "@/lib/moods";
@@ -10,6 +10,7 @@ import type { Genre, Title } from "@/lib/types";
 import { EmptyState, MovieCard, Skeleton } from "@/components/Movie";
 import { AppBar } from "@/components/AppBar";
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
 
 function DiscoverInner() {
   const params = useSearchParams();
@@ -33,9 +34,7 @@ function DiscoverInner() {
 
   // UI state for collapsible sections
   const [showFilters, setShowFilters] = useState(false);
-  const [showMoods, setShowMoods] = useState(false);
-  const [showGenres, setShowGenres] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const q = params.get("q") ?? "";
   const genre = params.get("genre") ?? "";
@@ -159,11 +158,11 @@ function DiscoverInner() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Clear genre and mood filters when searching by name so search works independently
-    set({ q: draft, genre: "", mood: "" });
+    // Text search runs independently: trim whitespace and clear narrowing
+    // filters (genre/mood/format/anime) so a title search can't be
+    // silently emptied by a previously selected filter.
+    set({ q: draft.trim(), genre: "", mood: "", media: "", anime: "" });
   };
-
-  const activeFilterCount = (genre ? 1 : 0) + (mood ? 1 : 0) + (media ? 1 : 0) + (anime ? 1 : 0) + (sort !== "popular" ? 1 : 0);
 
   return (
     <div>
@@ -338,22 +337,22 @@ function DiscoverInner() {
                 </div>
               </fieldset>
 
-              {/* Advanced Filters Toggle */}
+              {/* Advanced Filters open in a modal */}
               <button
                 type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
+                onClick={() => setAdvancedOpen(true)}
                 className="mr-chip flex items-center gap-2 px-3 py-2 text-sm font-medium w-full"
-                aria-expanded={showAdvanced}
-                aria-controls="advanced-filters"
+                aria-haspopup="dialog"
               >
                 <span>Advanced filters</span>
-                <span className={`transition-transform ${showAdvanced ? "rotate-180" : ""}`}>
-<CaretDown size={16} weight="regular" aria-hidden="true" />
-                </span>
+                {(media || anime || sort !== "popular") && (
+                  <span className="mr-chip px-2 py-0.5 text-xs" style={{ background: "var(--mr-gold)", color: "#24102e" }}>
+                    On
+                  </span>
+                )}
               </button>
 
-              {/* Advanced Filters Panel */}
-              <div id="advanced-filters" className={`overflow-hidden transition-all duration-300 ${showAdvanced ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Advanced filter options">
+              <Dialog open={advancedOpen} onClose={() => setAdvancedOpen(false)} title="Advanced filters">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="mr-card flex flex-col gap-1 p-3 text-sm">
                     Format
@@ -386,7 +385,12 @@ function DiscoverInner() {
                     </select>
                   </label>
                 </div>
-              </div>
+                <div className="mt-4 flex justify-end">
+                  <Button variant="primary" onClick={() => setAdvancedOpen(false)}>
+                    Done
+                  </Button>
+                </div>
+              </Dialog>
             </div>
           </div>
         </div>

@@ -378,6 +378,60 @@ input::placeholder, textarea::placeholder {
     display: flex;
     justify-content: center;
   }
+  /* Account popover anchored directly above the sidebar user button */
+  .app-user-anchor {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .app-user-menu {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    z-index: 60;
+    min-width: 230px;
+    max-width: calc(100vw - 32px);
+    padding: 8px;
+    border: 1px solid var(--mr-line);
+    border-radius: 16px;
+    background: var(--mr-surface);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+  }
+  .app-user-menu-name {
+    margin: 0;
+    padding: 8px 12px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mr-ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .app-user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--mr-ink);
+    text-align: left;
+    text-decoration: none;
+  }
+  .app-user-menu-item:hover {
+    background: var(--mr-surface-2);
+  }
+  .app-user-menu-item.app-user-menu-danger {
+    color: #dc2626;
+  }
+  .app-user-menu-item.app-user-menu-danger:hover {
+    background: rgb(220 38 38 / 0.08);
+  }
 }
 @media (min-width: 1100px) {
   /* Desktop: expanded, sectioned sidebar */

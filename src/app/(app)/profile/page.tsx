@@ -373,15 +373,6 @@ function HubDashboard() {
         </Link>
       </div>
 
-      {/* Sections */}
-      <div className="mt-6 mr-card p-2" aria-label="Profile sections">
-        <div className="grid gap-2 sm:grid-cols-3">
-          <Link href="/profile/info" className="mr-chip px-4 py-3 font-semibold text-center">Profile details</Link>
-          <Link href="/watchlist" className="mr-chip px-4 py-3 font-semibold text-center">Watchlist</Link>
-          <Link href="/profile/settings" className="mr-chip px-4 py-3 font-semibold text-center">Settings</Link>
-        </div>
-      </div>
-
       <div className="mt-6 flex gap-2">
         <Button
           variant="ghost"
