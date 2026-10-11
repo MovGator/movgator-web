@@ -36,7 +36,8 @@ function DiscoverInner() {
   const media = params.get("media") ?? "";
   const anime = params.get("anime") ?? "";
   const sort = params.get("sort") ?? "popular";
-  const effectiveGenre = genre || genresForMood(mood)[0] || "";
+  const moodGenres = genresForMood(mood);
+const effectiveGenre = genre || moodGenres.join(",");
 
   const [draft, setDraft] = useState(q);
   useEffect(() => setDraft(q), [q]);
