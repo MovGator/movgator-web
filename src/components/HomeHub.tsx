@@ -356,7 +356,7 @@ export function HomeHub({
         role="tablist"
         aria-label="Discovery categories"
         onKeyDown={onKeyDown}
-        className="mt-6 flex gap-2 overflow-x-auto pb-1"
+        className="home-tabs-sticky mt-6 flex gap-2 overflow-x-auto pb-1"
       >
         {TABS.map((t, i) => (
           <button

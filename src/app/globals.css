@@ -834,6 +834,23 @@ input::placeholder, textarea::placeholder {
   }
 }
 
+/* Sticky home filter tabs: scroll normally until reaching the viewport top,
+   then pin. Desktop has no sticky header above, so top: 0. Mobile pins below
+   the sticky appbar (56px + safe-area); the opaque background keeps scrolled
+   content from showing through. */
+.home-tabs-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--mr-bg);
+  padding-block: 8px;
+}
+@media (max-width: 767px) {
+  .home-tabs-sticky {
+    top: calc(57px + env(safe-area-inset-top, 0px));
+  }
+}
+
 /* Cinematic title hero (app details) */
 .title-hero {
   position: relative;

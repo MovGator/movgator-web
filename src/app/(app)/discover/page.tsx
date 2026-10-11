@@ -35,6 +35,21 @@ function DiscoverInner() {
   // UI state for collapsible sections
   const [showFilters, setShowFilters] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  // Mobile filters modal (draft selections applied on confirm)
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [mGenre, setMGenre] = useState("");
+  const [mMood, setMMood] = useState("");
+  const [mMedia, setMMedia] = useState("");
+  const [mAnime, setMAnime] = useState("");
+  const [mSort, setMSort] = useState("popular");
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const q = params.get("q") ?? "";
   const genre = params.get("genre") ?? "";
@@ -154,6 +169,30 @@ function DiscoverInner() {
     set({ q: "", genre: "", mood: "", media: "", anime: "", sort: "popular" });
   };
 
+  const openFilterModal = () => {
+    setMGenre(genre);
+    setMMood(mood);
+    setMMedia(media);
+    setMAnime(anime);
+    setMSort(sort);
+    setFilterModalOpen(true);
+  };
+  const applyFilterModal = () => {
+    set({ genre: mGenre, mood: mMood, media: mMedia, anime: mAnime, sort: mSort });
+    setFilterModalOpen(false);
+  };
+  const resetFilterModal = () => {
+    setMGenre("");
+    setMMood("");
+    setMMedia("");
+    setMAnime("");
+    setMSort("popular");
+    set({ genre: "", mood: "", media: "", anime: "", sort: "popular" });
+    setFilterModalOpen(false);
+  };
+  const modalFilterCount =
+    (mGenre ? 1 : 0) + (mMood ? 1 : 0) + (mMedia ? 1 : 0) + (mAnime ? 1 : 0) + (mSort !== "popular" ? 1 : 0);
+
   const hasActiveFilters = genre || mood || media || anime || sort !== "popular";
 
   const handleSearch = (e: React.FormEvent) => {
@@ -268,21 +307,126 @@ function DiscoverInner() {
           <div className="flex flex-wrap gap-2" role="group" aria-label="Quick filters">
             <button
               type="button"
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={() => {
+                if (isMobile) openFilterModal();
+                else setShowFilters(!showFilters);
+              }}
               className={`mr-chip px-4 py-2 text-sm font-semibold flex items-center gap-2 ${showFilters ? "bg-[var(--mr-plum)] text-white" : ""}`}
-              aria-expanded={showFilters}
+              aria-expanded={isMobile ? undefined : showFilters}
+              aria-haspopup={isMobile ? "dialog" : undefined}
               aria-controls="filter-panel"
             >
               <Funnel size={18} weight="regular" aria-hidden="true" />
               <span>Filters</span>
-              <span className={`transition-transform ${showFilters ? "rotate-180" : ""}`}>
-                <CaretDown size={16} weight="regular" aria-hidden="true" />
-              </span>
+              {(genre || mood || media || anime || sort !== "popular") && (
+                <span className="mr-chip px-2 py-0.5 text-xs" style={{ background: "var(--mr-gold)", color: "#24102e" }}>
+                  {(genre ? 1 : 0) + (mood ? 1 : 0) + (media ? 1 : 0) + (anime ? 1 : 0) + (sort !== "popular" ? 1 : 0)}
+                </span>
+              )}
+              {!isMobile && (
+                <span className={`transition-transform ${showFilters ? "rotate-180" : ""}`}>
+                  <CaretDown size={16} weight="regular" aria-hidden="true" />
+                </span>
+              )}
             </button>
           </div>
 
-          {/* Filter Panel */}
-          <div id="filter-panel" className={`overflow-hidden transition-all duration-300 ${showFilters ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Filter options">
+          {/* Mobile filters modal (draft selections, Apply/Reset) */}
+          <Dialog open={filterModalOpen} onClose={() => setFilterModalOpen(false)} title="Filters" maxWidth="max-w-lg">
+            <div className="max-h-[70dvh] overflow-y-auto pr-1">
+              <fieldset>
+                <legend className="text-sm font-semibold mb-2">Mood</legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMMood("")}
+                    className={`mr-chip px-3 py-1.5 text-sm min-h-[44px] inline-flex items-center ${!mMood ? "bg-[var(--mr-plum)] text-white" : ""}`}
+                    aria-pressed={!mMood}
+                  >
+                    Any mood
+                  </button>
+                  {MOODS.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => { setMMood(mMood === m.id ? "" : m.id); setMGenre(""); }}
+                      className={`mr-chip px-3 py-1.5 text-sm min-h-[44px] inline-flex items-center ${mMood === m.id ? "bg-[var(--mr-plum)] text-white border-transparent" : ""}`}
+                      aria-pressed={mMood === m.id}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset className="mt-5">
+                <legend className="text-sm font-semibold mb-2">Genre</legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMGenre("")}
+                    className={`mr-chip px-3 py-1.5 text-sm min-h-[44px] inline-flex items-center ${!mGenre && !mMood ? "bg-[var(--mr-gold)] text-[#24102e]" : ""}`}
+                    aria-pressed={!mGenre && !mMood}
+                  >
+                    All
+                  </button>
+                  {genres.map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => { setMGenre(mGenre === g.id ? "" : g.id); setMMood(""); }}
+                      className={`mr-chip px-3 py-1.5 text-sm min-h-[44px] inline-flex items-center ${mGenre === g.id ? "bg-[var(--mr-gold)] text-[#24102e]" : ""}`}
+                      aria-pressed={mGenre === g.id}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                  Format
+                  <select aria-label="Media type" value={mMedia} onChange={(e) => setMMedia(e.target.value)} className="bg-transparent font-semibold min-h-[44px]">
+                    <option value="">All</option>
+                    <option value="movie">Movies</option>
+                    <option value="anime">Anime</option>
+                    <option value="series">Series</option>
+                  </select>
+                </label>
+                <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                  Anime
+                  <select aria-label="Anime filter" value={mAnime} onChange={(e) => setMAnime(e.target.value)} className="bg-transparent font-semibold min-h-[44px]">
+                    <option value="">Include</option>
+                    <option value="only">Only anime</option>
+                    <option value="exclude">Exclude anime</option>
+                  </select>
+                </label>
+                <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                  Sort
+                  <select aria-label="Sort order" value={mSort} onChange={(e) => setMSort(e.target.value)} className="bg-transparent font-semibold min-h-[44px]">
+                    <option value="popular">Most popular</option>
+                    <option value="newest">Newest</option>
+                    <option value="az">A–Z</option>
+                  </select>
+                </label>
+              </div>
+              {modalFilterCount > 0 && (
+                <p className="mt-3 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
+                  {modalFilterCount} filter{modalFilterCount === 1 ? "" : "s"} selected — tap Apply Filters to see results.
+                </p>
+              )}
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button variant="ghost" onClick={resetFilterModal} className="flex-1">
+                Reset Filters
+              </Button>
+              <Button variant="primary" onClick={applyFilterModal} className="flex-1">
+                Apply Filters{modalFilterCount > 0 ? ` (${modalFilterCount})` : ""}
+              </Button>
+            </div>
+          </Dialog>
+
+          {/* Filter Panel (desktop inline; the modal above serves mobile) */}
+          <div id="filter-panel" className={`hidden md:block overflow-hidden transition-all duration-300 ${showFilters ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Filter options">
             <div className="mr-card p-4 space-y-6">
               {/* Mood Filter */}
               <fieldset>

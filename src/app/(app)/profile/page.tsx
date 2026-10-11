@@ -316,26 +316,26 @@ function HubDashboard() {
       <AppBar title="Profile" showBack={false} brand />
       
       {/* Profile Header */}
-      <div className="mr-card flex items-center gap-4 p-5">
-        <Avatar name={me.display_name} url={me.avatar_url} size={72} />
-        <div className="flex-1">
-          <h1 className="font-display text-2xl font-bold">{me.display_name}</h1>
-          <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+      <div className="mr-card flex flex-col items-center gap-3 p-5 text-center sm:flex-row sm:gap-4 sm:text-left">
+        <Avatar name={me.display_name} url={me.avatar_url} size={84} />
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-2xl font-bold truncate">{me.display_name}</h1>
+          <p className="text-sm truncate" style={{ color: "var(--mr-ink-soft)" }}>
             {me.email} · {me.email_verified ? "verified" : "unverified"}
           </p>
         </div>
-        <Button variant="ghost" onClick={() => setAvatarPickerOpen(true)}>
+        <Button variant="ghost" onClick={() => setAvatarPickerOpen(true)} className="w-full sm:w-auto">
           Change avatar
         </Button>
       </div>
 
       {/* Navigation Tabs */}
       <nav className="mt-6 mr-card p-2" aria-label="Profile sections">
-        <div className="flex gap-2" role="tablist">
+        <div className="flex gap-2 overflow-x-auto" role="tablist">
           <Link
             href="/profile/info"
             role="tab"
-            className="flex-1 mr-chip flex items-center justify-center gap-2 px-4 py-3 font-semibold"
+            className="flex-1 mr-chip flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold whitespace-nowrap sm:px-4"
             style={{ background: "var(--mr-plum)", color: "#fff" }}
           >
             <span>Profile Information</span>
@@ -343,14 +343,14 @@ function HubDashboard() {
           <Link
             href="/watchlist"
             role="tab"
-            className="flex-1 mr-chip flex items-center justify-center gap-2 px-4 py-3 font-semibold"
+            className="flex-1 mr-chip flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold whitespace-nowrap sm:px-4"
           >
             <span>Watchlist</span>
           </Link>
           <Link
             href="/profile/settings"
             role="tab"
-            className="flex-1 mr-chip flex items-center justify-center gap-2 px-4 py-3 font-semibold"
+            className="flex-1 mr-chip flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold whitespace-nowrap sm:px-4"
           >
             <span>Settings</span>
           </Link>
@@ -358,17 +358,17 @@ function HubDashboard() {
       </nav>
 
       {/* Stats */}
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <Link href="/watchlist" className="mr-card p-4 text-center group">
-          <p className="text-2xl font-bold" style={{ color: "var(--mr-plum)" }}>{savedCount ?? "–"}</p>
+      <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-4">
+        <Link href="/watchlist" className="mr-card p-3 sm:p-4 text-center group">
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--mr-plum)" }}>{savedCount ?? "–"}</p>
           <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Saved Titles</p>
         </Link>
-        <Link href="/profile/ratings" className="mr-card p-4 text-center group">
-          <p className="text-2xl font-bold" style={{ color: "var(--mr-gold)" }}>{ratingCount ?? "–"}</p>
+        <Link href="/profile/ratings" className="mr-card p-3 sm:p-4 text-center group">
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--mr-gold)" }}>{ratingCount ?? "–"}</p>
           <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Ratings Given</p>
         </Link>
-        <Link href="/movie-night" className="mr-card p-4 text-center group">
-          <p className="text-2xl font-bold" style={{ color: "var(--mr-ink)" }}>▶</p>
+        <Link href="/movie-night" className="mr-card p-3 sm:p-4 text-center group">
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--mr-ink)" }}>▶</p>
           <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Movie Nights</p>
         </Link>
       </div>
@@ -376,6 +376,7 @@ function HubDashboard() {
       <div className="mt-6 flex gap-2">
         <Button
           variant="ghost"
+          className="w-full sm:w-auto"
           onClick={async () => {
             await signOut();
             window.location.href = "/home";
