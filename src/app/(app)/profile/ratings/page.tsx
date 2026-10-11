@@ -1,11 +1,11 @@
 "use client";
 import { Suspense } from "react";
-import SettingsInner from "./SettingsInner";
+import RatingsContent from "./RatingsContent";
 
-export default function SettingsPage() {
+export default function RatingsPage() {
   return (
     <Suspense fallback={<p role="status">Loading…</p>}>
-      <SettingsInner />
+      <RatingsContent />
     </Suspense>
   );
 }
