@@ -30,6 +30,11 @@ export default function DicePage() {
   const [empty, setEmpty] = useState(false);
   const [excluded, setExcluded] = useState<string[]>([]);
 
+  // UI state for collapsible sections
+  const [showGenres, setShowGenres] = useState(true);
+  const [showMood, setShowMood] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   useEffect(() => {
     api.genres().then(setGenres).catch(() => setGenres([]));
   }, []);
@@ -38,8 +43,14 @@ export default function DicePage() {
   const activeGenres = picked.length ? picked : moodGenres;
 
   const clearAll = () => {
-    setPicked([]); setMood(""); setMedia(""); setMaxRuntime("");
-    setMinYear(""); setMaxYear(""); setMinRating(""); setIncludeAnime(true);
+    setPicked([]);
+    setMood("");
+    setMedia("");
+    setMaxRuntime("");
+    setMinYear("");
+    setMaxYear("");
+    setMinRating("");
+    setIncludeAnime(true);
   };
 
   const roll = async () => {
@@ -77,122 +88,26 @@ export default function DicePage() {
         filters — randomness, not AI.
       </p>
 
-      <fieldset className="mt-6">
-        <legend className="text-sm font-semibold">Genres (optional)</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {genres.map((g) => {
-            const on = picked.includes(g.id);
-            return (
-              <button
-                key={g.id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setPicked((p) => (on ? p.filter((x) => x !== g.id) : [...p, g.id].slice(0, 5)))}
-                className="mr-chip px-3 py-1.5 text-sm"
-                style={on ? { background: "var(--mr-plum)", color: "#fff" } : undefined}
-              >
-                {g.label}
-              </button>
-            );
-          })}
+      {/* Main Dice Action - Always Visible */}
+      <section className="mt-6" aria-labelledby="dice-action">
+        <h2 id="dice-action" className="sr-only">Roll the Dice</h2>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={roll}
+            disabled={rolling}
+            aria-label="Roll the dice"
+            className={`mr-btn-gold inline-flex h-24 w-24 items-center justify-center rounded-full ${rolling ? "dice-rolling" : ""}`}
+          >
+            <DiceFive size={44} weight="regular" aria-hidden="true" />
+          </button>
+          <p className="mt-2 text-sm" role="status" style={{ color: "var(--mr-ink-soft)" }}>
+            {rolling ? "Rolling…" : count > 0 ? `${count} matching title${count === 1 ? "" : "s"}` : "Tap the dice"}
+          </p>
         </div>
-      </fieldset>
+      </section>
 
-      <div className="mt-4">
-        <p className="text-sm font-semibold" id="dice-mood">Mood <span className="font-normal" style={{ color: "var(--mr-ink-soft)" }}>(maps to genres)</span></p>
-        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-labelledby="dice-mood">
-          {MOODS.map((m) => {
-            const on = mood === m.id;
-            return (
-              <button
-                key={m.id}
-                type="button"
-                aria-pressed={on}
-                title={`Shows ${m.genres.join(", ")} titles`}
-                onClick={() => setMood(on ? "" : m.id)}
-                className="mr-chip px-3 py-1.5 text-sm"
-                style={on ? { background: "var(--mr-plum)", color: "#fff", borderColor: "transparent" } : undefined}
-              >
-                {m.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <label className="mr-card flex flex-col gap-1 p-3 text-sm">
-          Format
-          <select value={media} onChange={(e) => setMedia(e.target.value)} className="bg-transparent font-semibold">
-            <option value="">Any</option>
-            <option value="movie">Movies</option>
-            <option value="anime">Anime</option>
-            <option value="series">Series</option>
-          </select>
-        </label>
-        <label className="mr-card flex flex-col gap-1 p-3 text-sm">
-          Max runtime (min)
-          <input
-            type="number"
-            min={20}
-            max={400}
-            value={maxRuntime}
-            onChange={(e) => setMaxRuntime(e.target.value)}
-            placeholder="Any"
-            className="bg-transparent font-semibold"
-          />
-        </label>
-        <label className="mr-card flex items-center justify-between gap-2 p-3 text-sm">
-          Include anime
-          <input type="checkbox" checked={includeAnime} onChange={(e) => setIncludeAnime(e.target.checked)} className="h-5 w-5" />
-        </label>
-      </div>
-
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <label className="mr-card flex flex-col gap-1 p-3 text-sm">
-          From year
-          <input
-            type="number" min={1900} max={2100} value={minYear}
-            onChange={(e) => setMinYear(e.target.value)} placeholder="Any"
-            className="bg-transparent font-semibold" aria-label="Earliest release year"
-          />
-        </label>
-        <label className="mr-card flex flex-col gap-1 p-3 text-sm">
-          To year
-          <input
-            type="number" min={1900} max={2100} value={maxYear}
-            onChange={(e) => setMaxYear(e.target.value)} placeholder="Any"
-            className="bg-transparent font-semibold" aria-label="Latest release year"
-          />
-        </label>
-        <label className="mr-card flex flex-col gap-1 p-3 text-sm">
-          Min provider score (0–10)
-          <input
-            type="number" min={0} max={10} step={0.5} value={minRating}
-            onChange={(e) => setMinRating(e.target.value)} placeholder="Any"
-            className="bg-transparent font-semibold" aria-label="Minimum provider score"
-          />
-        </label>
-      </div>
-      <p className="mt-2 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-        Score filter uses source-labelled provider scores; titles without one never match a floor.
-      </p>
-
-      <div className="mt-6 text-center">
-        <button
-          type="button"
-          onClick={roll}
-          disabled={rolling}
-          aria-label="Roll the dice"
-          className={`mr-btn-gold inline-flex h-24 w-24 items-center justify-center rounded-full ${rolling ? "dice-rolling" : ""}`}
-        >
-          <DiceFive size={44} weight="regular" aria-hidden="true" />
-        </button>
-        <p className="mt-2 text-sm" role="status" style={{ color: "var(--mr-ink-soft)" }}>
-          {rolling ? "Rolling…" : count > 0 ? `${count} matching title${count === 1 ? "" : "s"}` : "Tap the dice"}
-        </p>
-      </div>
-
+      {/* Result Display */}
       {empty && (
         <div className="mt-6">
           <EmptyState
@@ -235,7 +150,176 @@ export default function DicePage() {
           </div>
         </div>
       )}
+
+      {/* Collapsible Filter Sections */}
+      <section className="mt-8" aria-labelledby="filters-heading">
+        <h2 id="filters-heading" className="sr-only">Filters</h2>
+        
+        {/* Quick Filter Toggles */}
+        <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Quick filter toggles">
+          <button
+            type="button"
+            onClick={() => setShowGenres(!showGenres)}
+            className={`mr-chip px-4 py-2 text-sm font-semibold flex items-center gap-2 ${showGenres ? "bg-[var(--mr-plum)] text-white" : ""}`}
+            aria-expanded={showGenres}
+            aria-controls="genre-panel"
+          >
+            <span>Genres</span>
+            <span className={`transition-transform ${showGenres ? "rotate-180" : ""}`}>
+              <span className="inline-block transition-transform duration-200" style={{ display: "inline-block" }}>
+                ▼
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowMood(!showMood)}
+            className={`mr-chip px-4 py-2 text-sm font-semibold flex items-center gap-2 ${showMood ? "bg-[var(--mr-plum)] text-white" : ""}`}
+            aria-expanded={showMood}
+            aria-controls="mood-panel"
+          >
+            <span>Mood</span>
+            <span className={`transition-transform ${showMood ? "rotate-180" : ""}`}>
+              <span className="inline-block transition-transform duration-200" style={{ display: "inline-block" }}>
+                ▼
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className={`mr-chip px-4 py-2 text-sm font-semibold flex items-center gap-2 ${showAdvanced ? "bg-[var(--mr-plum)] text-white" : ""}`}
+            aria-expanded={showAdvanced}
+            aria-controls="advanced-panel"
+          >
+            <span>Advanced</span>
+            <span className={`transition-transform ${showAdvanced ? "rotate-180" : ""}`}>
+              <span className="inline-block transition-transform duration-200" style={{ display: "inline-block" }}>
+                ▼
+              </span>
+            </span>
+          </button>
+        </div>
+
+        {/* Genre Panel */}
+        <div id="genre-panel" className={`overflow-hidden transition-all duration-300 ${showGenres ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Genre filters">
+          <fieldset className="mr-card p-4">
+            <legend className="text-sm font-semibold mb-3">Genres (max 5)</legend>
+            <div className="flex flex-wrap gap-2">
+              {genres.map((g) => {
+                const on = picked.includes(g.id);
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setPicked((p) => (on ? p.filter((x) => x !== g.id) : [...p, g.id].slice(0, 5)))}
+                    className="mr-chip px-3 py-1.5 text-sm"
+                    style={on ? { background: "var(--mr-plum)", color: "#fff" } : undefined}
+                  >
+                    {g.label}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        </div>
+
+        {/* Mood Panel */}
+        <div id="mood-panel" className={`overflow-hidden transition-all duration-300 ${showMood ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Mood filters">
+          <fieldset className="mr-card p-4">
+            <legend className="text-sm font-semibold mb-3">Mood <span className="font-normal text-xs" style={{ color: "var(--mr-ink-soft)" }}>(maps to genres)</span></legend>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setMood("")} className="mr-chip px-3 py-1.5 text-sm" aria-pressed={!mood}>
+                Any mood
+              </button>
+              {MOODS.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMood(mood === m.id ? "" : m.id)}
+                  className="mr-chip px-3 py-1.5 text-sm"
+                  aria-pressed={mood === m.id}
+                  title={`Shows ${m.genres.join(", ")} titles`}
+                  style={mood === m.id ? { background: "var(--mr-plum)", color: "#fff", borderColor: "transparent" } : undefined}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+
+        {/* Advanced Filters Panel */}
+        <div id="advanced-panel" className={`overflow-hidden transition-all duration-300 ${showAdvanced ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Advanced filters">
+          <div className="mr-card p-4 space-y-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                Format
+                <select value={media} onChange={(e) => setMedia(e.target.value)} className="bg-transparent font-semibold">
+                  <option value="">Any</option>
+                  <option value="movie">Movies</option>
+                  <option value="anime">Anime</option>
+                  <option value="series">Series</option>
+                </select>
+              </label>
+              <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                Max runtime (min)
+                <input
+                  type="number"
+                  min={20}
+                  max={400}
+                  value={maxRuntime}
+                  onChange={(e) => setMaxRuntime(e.target.value)} placeholder="Any"
+                  className="bg-transparent font-semibold"
+                />
+              </label>
+              <label className="mr-card flex items-center justify-between gap-2 p-3 text-sm">
+                Include anime
+                <input type="checkbox" checked={includeAnime} onChange={(e) => setIncludeAnime(e.target.checked)} className="h-5 w-5" />
+              </label>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                From year
+                <input
+                  type="number" min={1900} max={2100} value={minYear}
+                  onChange={(e) => setMinYear(e.target.value)} placeholder="Any"
+                  className="bg-transparent font-semibold" aria-label="Earliest release year"
+                />
+              </label>
+              <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                To year
+                <input
+                  type="number" min={1900} max={2100} value={maxYear}
+                  onChange={(e) => setMaxYear(e.target.value)} placeholder="Any"
+                  className="bg-transparent font-semibold" aria-label="Latest release year"
+                />
+              </label>
+              <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                Min provider score (0–10)
+                <input
+                  type="number" min={0} max={10} step={0.5} value={minRating}
+                  onChange={(e) => setMinRating(e.target.value)} placeholder="Any"
+                  className="bg-transparent font-semibold" aria-label="Minimum provider score"
+                />
+              </label>
+            </div>
+            <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
+              Score filter uses source-labelled provider scores; titles without one never match a floor.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Clear Filters */}
+      {(picked.length || mood || media || !includeAnime || maxRuntime || minYear || maxYear || minRating) && (
+        <div className="mt-4">
+          <Button variant="ghost" onClick={clearAll} className="w-full sm:w-auto">
+            Clear all filters
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
-

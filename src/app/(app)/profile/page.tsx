@@ -294,6 +294,15 @@ function HubDashboard() {
   const { me, refresh, signOut, loading } = useAuth();
   const { push } = useToast();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const [savedCount, setSavedCount] = useState<number | null>(null);
+  const [ratingCount, setRatingCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.watchlist().then((r) => { if (!cancelled) setSavedCount(r.length); }).catch(() => { if (!cancelled) setSavedCount(null); });
+    api.ratings().then((r) => { if (!cancelled) setRatingCount(r.length); }).catch(() => { if (!cancelled) setRatingCount(null); });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleAvatarSave = async (newSeed: string) => {
     await api.patchMe({ avatar_seed: newSeed });
@@ -348,34 +357,29 @@ function HubDashboard() {
         </div>
       </nav>
 
-      {/* Quick Stats */}
+      {/* Stats */}
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         <Link href="/watchlist" className="mr-card p-4 text-center group">
-          <p className="text-2xl font-bold" style={{ color: "var(--mr-plum)" }}>0</p>
+          <p className="text-2xl font-bold" style={{ color: "var(--mr-plum)" }}>{savedCount ?? "–"}</p>
           <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Saved Titles</p>
         </Link>
         <Link href="/profile/ratings" className="mr-card p-4 text-center group">
-          <p className="text-2xl font-bold" style={{ color: "var(--mr-gold)" }}>0</p>
+          <p className="text-2xl font-bold" style={{ color: "var(--mr-gold)" }}>{ratingCount ?? "–"}</p>
           <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Ratings Given</p>
         </Link>
-        <Link href="/profile/settings" className="mr-card p-4 text-center group">
-          <p className="text-2xl font-bold" style={{ color: "var(--mr-ink)" }}>1</p>
-          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Account</p>
+        <Link href="/movie-night" className="mr-card p-4 text-center group">
+          <p className="text-2xl font-bold" style={{ color: "var(--mr-ink)" }}>▶</p>
+          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Movie Nights</p>
         </Link>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mt-6 mr-card p-5 space-y-3">
-        <h3 className="font-display text-lg font-bold">Quick Actions</h3>
-        <Link href="/watchlist" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
-          <span>My Watchlist</span>
-        </Link>
-        <Link href="/profile/ratings" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
-          <span>My Ratings</span>
-        </Link>
-        <Link href="/profile/settings" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
-          <span>Settings</span>
-        </Link>
+      {/* Sections */}
+      <div className="mt-6 mr-card p-2" aria-label="Profile sections">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Link href="/profile/info" className="mr-chip px-4 py-3 font-semibold text-center">Profile details</Link>
+          <Link href="/watchlist" className="mr-chip px-4 py-3 font-semibold text-center">Watchlist</Link>
+          <Link href="/profile/settings" className="mr-chip px-4 py-3 font-semibold text-center">Settings</Link>
+        </div>
       </div>
 
       <div className="mt-6 flex gap-2">

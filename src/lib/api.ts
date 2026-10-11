@@ -169,6 +169,30 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ guest_key }),
     }),
+  nightDelete: (id: string) =>
+    req<{ ok: boolean }>(`/api/v1/movie-nights/${id}`, { method: "DELETE" }),
+  nightInvitation: (id: string, invite: string) =>
+    req<NightInvitation>(`/api/v1/movie-nights/${id}/invitation?invite=${encodeURIComponent(invite)}`),
+  nightRespond: (id: string, invite: string, accept: boolean, display_name?: string) =>
+    req<NightRespond>(`/api/v1/movie-nights/${id}/invitation/respond?invite=${encodeURIComponent(invite)}`, {
+      method: "POST",
+      body: JSON.stringify({ accept, ...(display_name ? { display_name } : {}) }),
+    }),
+  nightMembers: (id: string) => req<NightMember[]>(`/api/v1/movie-nights/${id}/members`),
+  nightRemoveMember: (id: string, member_id: string) =>
+    req<{ ok: boolean }>(`/api/v1/movie-nights/${id}/members/remove`, {
+      method: "POST",
+      body: JSON.stringify({ member_id }),
+    }),
+  nightLeave: (id: string, guest_key = "") =>
+    req<{ ok: boolean }>(`/api/v1/movie-nights/${id}/leave`, {
+      method: "POST",
+      body: JSON.stringify({ guest_key }),
+    }),
+  nightRotateInvite: (id: string) =>
+    req<{ ok: boolean; invite: string; invite_url: string; invite_expires_at: string | null }>(
+      `/api/v1/movie-nights/${id}/invite/rotate`, { method: "POST", body: "{}" }
+    ),
 };
 
 export interface NightCreated {
@@ -192,6 +216,43 @@ export interface NightHistory {
   member_count: number;
   candidate_count: number;
   created_at: string | null;
+  owner_id?: string | null;
+  is_host?: boolean;
+  role?: "host" | "member";
+}
+
+export interface NightInvitation {
+  night_id: string;
+  night_code: string;
+  night_name: string;
+  night_status: string;
+  host_name: string;
+  scheduled_at: string | null;
+  blind_voting: boolean;
+  prefs: Record<string, unknown>;
+  invite_expires_at: string | null;
+  members_count: number;
+  candidates_count: number;
+  is_member: boolean;
+  member_status: string;
+  invite_token: string;
+}
+
+export interface NightRespond {
+  ok: boolean;
+  action: "accepted" | "declined";
+  voter_key?: string;
+  guest_key?: string;
+  snapshot?: NightSnapshot;
+}
+
+export interface NightMember {
+  id: string;
+  display_name: string;
+  kind: "user" | "guest";
+  is_host: boolean;
+  joined_at: string | null;
+  status: string;
 }
 
 export interface NightSnapshot {
@@ -205,8 +266,10 @@ export interface NightSnapshot {
     blind_voting: boolean;
     prefs: Record<string, unknown>;
     total_votes: number;
+    owner_id: string | null;
+    owner_display_name?: string | null;
   };
-  members: { display_name: string; kind: string }[];
+  members: { id?: string; display_name: string; kind: string; is_host?: boolean }[];
   candidates: {
     id: string;
     title: string;

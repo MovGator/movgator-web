@@ -2,13 +2,14 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { CardsThree, MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlass, Funnel, X, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { MOODS, genresForMood } from "@/lib/moods";
 import type { Genre, Title } from "@/lib/types";
 import { EmptyState, MovieCard, Skeleton } from "@/components/Movie";
 import { AppBar } from "@/components/AppBar";
+import { Button } from "@/components/Button";
 
 function DiscoverInner() {
   const params = useSearchParams();
@@ -30,6 +31,12 @@ function DiscoverInner() {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
+  // UI state for collapsible sections
+  const [showFilters, setShowFilters] = useState(false);
+  const [showMoods, setShowMoods] = useState(false);
+  const [showGenres, setShowGenres] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const q = params.get("q") ?? "";
   const genre = params.get("genre") ?? "";
   const mood = params.get("mood") ?? "";
@@ -37,7 +44,7 @@ function DiscoverInner() {
   const anime = params.get("anime") ?? "";
   const sort = params.get("sort") ?? "popular";
   const moodGenres = genresForMood(mood);
-const effectiveGenre = genre || moodGenres.join(",");
+  const effectiveGenre = genre || moodGenres.join(",");
 
   const [draft, setDraft] = useState(q);
   useEffect(() => setDraft(q), [q]);
@@ -144,207 +151,307 @@ const effectiveGenre = genre || moodGenres.join(",");
     router.push(`/discover?${next.toString()}`);
   };
 
+  const clearAllFilters = () => {
+    set({ q: "", genre: "", mood: "", media: "", anime: "", sort: "popular" });
+  };
+
+  const hasActiveFilters = genre || mood || media || anime || sort !== "popular";
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Clear genre and mood filters when searching by name so search works independently
     set({ q: draft, genre: "", mood: "" });
   };
 
+  const activeFilterCount = (genre ? 1 : 0) + (mood ? 1 : 0) + (media ? 1 : 0) + (anime ? 1 : 0) + (sort !== "popular" ? 1 : 0);
+
   return (
     <div>
       <AppBar title="Discover" showBack={false} brand />
-      <h1 className="font-display text-3xl font-extrabold">Discover</h1>
-      <form
-        role="search"
-        className="mt-4 flex gap-2"
-        onSubmit={handleSearch}
-      >
-        <label htmlFor="discover-q" className="sr-only">
-          Search titles
-        </label>
-        <input
-          id="discover-q"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Search films and anime…"
-          className="mr-card min-h-[44px] flex-1 px-4"
-          autoComplete="off"
-        />
-        <button type="submit" className="mr-btn-primary inline-flex items-center gap-2 px-5">
-          <MagnifyingGlass size={18} weight="regular" aria-hidden="true" />
-          Search
-        </button>
-      </form>
+      
+      {/* Hero Search Section */}
+      <section className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+        <header className="mb-6">
+          <h1 className="font-display text-3xl font-extrabold sm:text-4xl">Discover Movies</h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+            Search, filter, and explore our curated catalog of movies and anime
+          </p>
+        </header>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <Link href="/onboarding" className="mr-card group flex items-center gap-3 p-4">
-          <span className="mr-btn-gold inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full" aria-hidden="true">
-            <CardsThree size={20} weight="regular" />
-          </span>
-          <span>
-            <span className="block font-bold group-hover:underline">Swipe to Discover</span>
-            <span className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-              Five quick swipes tune your taste — keyboard and buttons included.
-            </span>
-          </span>
-        </Link>
-        <div className="mr-card p-4" aria-live="polite">
-          <p className="text-sm font-bold">Your taste</p>
-          {me && prefs ? (
-            <p className="mt-1 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-              {prefs.favourite_genres.length
-                ? `Loves ${prefs.favourite_genres.slice(0, 5).join(", ")}${prefs.include_anime ? " · anime in" : " · anime out"}.`
-                : "No genres saved yet — swipe to teach it."}{" "}
-              <Link href="/onboarding" className="underline">Refine</Link>
-              {" · "}
-              <Link href="/profile" className="underline">Settings</Link>
-            </p>
-          ) : (
-            <p className="mt-1 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-              <Link href="/profile?next=/discover" className="underline">Sign in</Link> to
-              keep taste across devices — browsing stays free.
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-4" role="group" aria-label="Mood filter">
-        <p className="text-xs font-semibold" style={{ color: "var(--mr-ink-soft)" }}>
-          Mood <span className="font-normal">(maps to genres — same real filter underneath)</span>
-        </p>
-        <div className="mt-1 flex flex-wrap gap-2">
-          <button type="button" onClick={() => set({ mood: "" })} className="mr-chip px-3 py-1 text-sm" aria-pressed={!mood}>
-            Any mood
-          </button>
-          {MOODS.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => set({ mood: mood === m.id ? "" : m.id, genre: "" })}
-              className="mr-chip px-3 py-1 text-sm"
-              aria-pressed={mood === m.id}
-              title={`Shows ${m.genres.join(", ")} titles`}
-              style={mood === m.id ? { background: "var(--mr-plum)", color: "#fff", borderColor: "transparent" } : undefined}
-            >
-              {m.label}
+        {/* Main Search Bar */}
+        <form role="search" className="mb-6" onSubmit={handleSearch}>
+          <label htmlFor="discover-q" className="sr-only">Search movies and anime</label>
+          <div className="relative">
+            <MagnifyingGlass size={20} weight="regular" aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--mr-ink-soft)" }} />
+            <input
+              id="discover-q"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Search films and anime…"
+              className="mr-card min-h-[48px] w-full pl-12 pr-12 py-3 text-base"
+              autoComplete="off"
+            />
+            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 mr-btn-primary inline-flex items-center gap-2 px-5">
+              <MagnifyingGlass size={18} weight="regular" aria-hidden="true" />
+              <span className="hidden sm:inline">Search</span>
             </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Genre filter">
-        <button type="button" onClick={() => set({ genre: "" })} className="mr-chip px-3 py-1 text-sm" aria-pressed={!genre}>
-          All
-        </button>
-        {genres.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => set({ genre: genre === g.id ? "" : g.id, mood: "" })}
-            className="mr-chip px-3 py-1 text-sm"
-            aria-pressed={genre === g.id}
-            style={genre === g.id ? { background: "var(--mr-gold)", color: "#24102e" } : undefined}
-          >
-            {g.label}
-          </button>
-        ))}
-      </div>
-      {mood && !genre && (
-        <p className="mt-2 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-          Showing {genresForMood(mood).join(" + ")} titles for "{MOODS.find((m) => m.id === mood)?.label}".
-        </p>
-      )}
-
-      <div className="mt-3 flex flex-wrap gap-2 text-sm">
-        <label className="mr-chip flex items-center gap-2 px-3 py-1">
-          Format
-          <select
-            aria-label="Media type"
-            value={media}
-            onChange={(e) => set({ media: e.target.value })}
-            className="bg-transparent"
-          >
-            <option value="">All</option>
-            <option value="movie">Movies</option>
-            <option value="anime">Anime</option>
-            <option value="series">Series</option>
-          </select>
-        </label>
-        <label className="mr-chip flex items-center gap-2 px-3 py-1">
-          Anime
-          <select aria-label="Anime filter" value={anime} onChange={(e) => set({ anime: e.target.value })} className="bg-transparent">
-            <option value="">Include</option>
-            <option value="only">Only anime</option>
-            <option value="exclude">Exclude anime</option>
-          </select>
-        </label>
-        <label className="mr-chip flex items-center gap-2 px-3 py-1">
-          Sort
-          <select aria-label="Sort order" value={sort} onChange={(e) => set({ sort: e.target.value })} className="bg-transparent">
-            <option value="popular">Most popular</option>
-            <option value="newest">Newest</option>
-            <option value="az">A–Z</option>
-          </select>
-        </label>
-      </div>
-
-      <p className="mt-4 text-sm" role="status" style={{ color: "var(--mr-ink-soft)" }}>
-        {state === "ok" ? `${total} result${total === 1 ? "" : "s"}` : " "}
-      </p>
-
-      {state === "loading" && <Skeleton label="Searching titles" />}
-      {state === "error" && (
-        <EmptyState
-          title="Search is unavailable"
-          body="The catalogue service isn't responding. Check the backend is running, then try again."
-          action={
-            <button type="button" className="mr-btn-primary px-5 py-2.5" onClick={() => set({})}>
-              Retry
-            </button>
-          }
-        />
-      )}
-      {state === "ok" && items.length === 0 && (
-        <EmptyState
-          title="Nothing matches those filters"
-          body="Try fewer filters, a different genre, or include anime — the demo catalogue is small."
-          action={
-            <button type="button" className="mr-btn-primary px-5 py-2.5" onClick={() => router.push("/discover")}>
-              Clear filters
-            </button>
-          }
-        />
-      )}
-      {state === "ok" && items.length > 0 && (
-        <>
-          <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {items.map((t) => (
-              <MovieCard key={t.id} title={t} />
-            ))}
           </div>
-          {loadingMore && (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
-            </div>
-          )}
-          {error && (
-            <div className="flex flex-col items-center gap-2 py-8 text-center">
-              <p className="text-sm font-medium text-red-600">{error}</p>
-              <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="mr-chip px-4 py-2 text-sm font-semibold"
-              >
-                Retry
+        </form>
+
+        {/* Active Filters Bar */}
+        {(q || hasActiveFilters) && (
+          <div className="mb-4 flex flex-wrap items-center gap-2" role="group" aria-label="Active filters">
+            {q && (
+              <span className="mr-chip flex items-center gap-1.5 px-3 py-1.5">
+                <span className="font-medium">Search:</span>
+                <span className="truncate max-w-[200px]">{q}</span>
+                <button type="button" onClick={() => set({ q: "" })} aria-label="Remove search" className="ml-1">
+                  <X size={14} weight="regular" aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {genre && (
+              <span className="mr-chip flex items-center gap-1.5 px-3 py-1.5" style={{ background: "var(--mr-gold)", color: "#24102e" }}>
+                <span className="font-medium">Genre:</span>
+                <span>{genres.find(g => g.id === genre)?.label || genre}</span>
+                <button type="button" onClick={() => set({ genre: "", mood: "" })} aria-label="Remove genre" className="ml-1">
+                  <X size={14} weight="regular" aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {mood && !genre && (
+              <span className="mr-chip flex items-center gap-1.5 px-3 py-1.5" style={{ background: "var(--mr-plum)", color: "#fff" }}>
+                <span className="font-medium">Mood:</span>
+                <span>{MOODS.find(m => m.id === mood)?.label || mood}</span>
+                <button type="button" onClick={() => set({ mood: "" })} aria-label="Remove mood" className="ml-1">
+                  <X size={14} weight="regular" aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {media && (
+              <span className="mr-chip flex items-center gap-1.5 px-3 py-1.5">
+                <span className="font-medium">Format:</span>
+                <span>{media === "movie" ? "Movies" : media === "series" ? "Series" : "Anime"}</span>
+                <button type="button" onClick={() => set({ media: "" })} aria-label="Remove format" className="ml-1">
+                  <X size={14} weight="regular" aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {anime && (
+              <span className="mr-chip flex items-center gap-1.5 px-3 py-1.5">
+                <span className="font-medium">Anime:</span>
+                <span>{anime === "only" ? "Only anime" : "Exclude anime"}</span>
+                <button type="button" onClick={() => set({ anime: "" })} aria-label="Remove anime filter" className="ml-1">
+                  <X size={14} weight="regular" aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {sort !== "popular" && (
+              <span className="mr-chip flex items-center gap-1.5 px-3 py-1.5">
+                <span className="font-medium">Sort:</span>
+                <span>{sort === "newest" ? "Newest" : "A–Z"}</span>
+                <button type="button" onClick={() => set({ sort: "popular" })} aria-label="Remove sort" className="ml-1">
+                  <X size={14} weight="regular" aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {hasActiveFilters && (
+              <button type="button" onClick={clearAllFilters} className="mr-chip px-3 py-1.5 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+                Clear all
               </button>
+            )}
+          </div>
+        )}
+
+        {/* Collapsible Filter Sections */}
+        <div className="space-y-4" role="group" aria-label="Filters">
+          {/* Quick Filter Toggles */}
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Quick filters">
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`mr-chip px-4 py-2 text-sm font-semibold flex items-center gap-2 ${showFilters ? "bg-[var(--mr-plum)] text-white" : ""}`}
+              aria-expanded={showFilters}
+              aria-controls="filter-panel"
+            >
+              <Funnel size={18} weight="regular" aria-hidden="true" />
+              <span>Filters</span>
+              <span className={`transition-transform ${showFilters ? "rotate-180" : ""}`}>
+                <CaretDown size={16} weight="regular" aria-hidden="true" />
+              </span>
+            </button>
+          </div>
+
+          {/* Filter Panel */}
+          <div id="filter-panel" className={`overflow-hidden transition-all duration-300 ${showFilters ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Filter options">
+            <div className="mr-card p-4 space-y-6">
+              {/* Mood Filter */}
+              <fieldset>
+                <legend className="text-sm font-semibold mb-3">Mood</legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => set({ mood: "" })}
+                    className={`mr-chip px-3 py-1.5 text-sm ${!mood ? "bg-[var(--mr-plum)] text-white" : ""}`}
+                    aria-pressed={!mood}
+                  >
+                    Any mood
+                  </button>
+                  {MOODS.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => set({ mood: mood === m.id ? "" : m.id, genre: "" })}
+                      className={`mr-chip px-3 py-1.5 text-sm ${mood === m.id ? "bg-[var(--mr-plum)] text-white border-transparent" : ""}`}
+                      aria-pressed={mood === m.id}
+                      title={`Shows ${m.genres.join(", ")} titles`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              {/* Genre Filter */}
+              <fieldset>
+                <legend className="text-sm font-semibold mb-3">Genre</legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => set({ genre: "" })}
+                    className={`mr-chip px-3 py-1.5 text-sm ${!genre && !mood ? "bg-[var(--mr-gold)] text-[#24102e]" : ""}`}
+                    aria-pressed={!genre && !mood}
+                  >
+                    All
+                  </button>
+                  {genres.map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => set({ genre: genre === g.id ? "" : g.id, mood: "" })}
+                      className={`mr-chip px-3 py-1.5 text-sm ${genre === g.id ? "bg-[var(--mr-gold)] text-[#24102e]" : ""}`}
+                      aria-pressed={genre === g.id}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              {/* Advanced Filters Toggle */}
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="mr-chip flex items-center gap-2 px-3 py-2 text-sm font-medium w-full"
+                aria-expanded={showAdvanced}
+                aria-controls="advanced-filters"
+              >
+                <span>Advanced filters</span>
+                <span className={`transition-transform ${showAdvanced ? "rotate-180" : ""}`}>
+<CaretDown size={16} weight="regular" aria-hidden="true" />
+                </span>
+              </button>
+
+              {/* Advanced Filters Panel */}
+              <div id="advanced-filters" className={`overflow-hidden transition-all duration-300 ${showAdvanced ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`} role="region" aria-label="Advanced filter options">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                    Format
+                    <select
+                      aria-label="Media type"
+                      value={media}
+                      onChange={(e) => set({ media: e.target.value })}
+                      className="bg-transparent font-semibold"
+                    >
+                      <option value="">All</option>
+                      <option value="movie">Movies</option>
+                      <option value="anime">Anime</option>
+                      <option value="series">Series</option>
+                    </select>
+                  </label>
+                  <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                    Anime
+                    <select aria-label="Anime filter" value={anime} onChange={(e) => set({ anime: e.target.value })} className="bg-transparent font-semibold">
+                      <option value="">Include</option>
+                      <option value="only">Only anime</option>
+                      <option value="exclude">Exclude anime</option>
+                    </select>
+                  </label>
+                  <label className="mr-card flex flex-col gap-1 p-3 text-sm">
+                    Sort
+                    <select aria-label="Sort order" value={sort} onChange={(e) => set({ sort: e.target.value })} className="bg-transparent font-semibold">
+                      <option value="popular">Most popular</option>
+                      <option value="newest">Newest</option>
+                      <option value="az">A–Z</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Results */}
+        <div className="mt-6">
+          <p className="text-sm" role="status" style={{ color: "var(--mr-ink-soft)" }}>
+            {state === "ok" ? `${total} result${total === 1 ? "" : "s"}` : " "}
+          </p>
+
+          {state === "loading" && <Skeleton label="Searching titles" />}
+          {state === "error" && (
+            <EmptyState
+              title="Search is unavailable"
+              body="The catalogue service isn't responding. Check the backend is running, then try again."
+              action={
+                <button type="button" className="mr-btn-primary px-5 py-2.5" onClick={() => set({})}>
+                  Retry
+                </button>
+              }
+            />
           )}
-          {/* Sentinel for infinite scroll */}
-          {hasMore && (
-            <div ref={sentinelRef} className="h-4" aria-hidden="true" />
+          {state === "ok" && items.length === 0 && (
+            <EmptyState
+              title="Nothing matches those filters"
+              body="Try fewer filters, a different genre, or include anime — the demo catalogue is small."
+              action={
+                <button type="button" className="mr-btn-primary px-5 py-2.5" onClick={() => router.push("/discover")}>
+                  Clear filters
+                </button>
+              }
+            />
           )}
-        </>
-      )}
+          {state === "ok" && items.length > 0 && (
+            <>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {items.map((t) => (
+                  <MovieCard key={t.id} title={t} />
+                ))}
+              </div>
+              {loadingMore && (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--mr-plum)] border-t-transparent" aria-label="Loading more movies" />
+                </div>
+              )}
+              {error && (
+                <div className="flex flex-col items-center gap-2 py-8 text-center">
+                  <p className="text-sm font-medium text-red-600">{error}</p>
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="mr-chip px-4 py-2 text-sm font-semibold"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+              {/* Sentinel for infinite scroll */}
+              {hasMore && (
+                <div ref={sentinelRef} className="h-4" aria-hidden="true" />
+              )}
+            </>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

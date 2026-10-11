@@ -83,9 +83,15 @@ export default function SettingsContent() {
   return (
     <div className="mx-auto max-w-3xl">
       <AppBar title="Settings" backFallback="/profile" />
-      
+
+      <nav className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Settings sections">
+        {[["account", "Account"], ["security", "Security"], ["filters", "Filters"], ["theme", "Theme"], ["privacy", "Privacy"], ["support", "Support"]].map(([href, label]) => (
+          <a key={href} href={`#${href}`} className="mr-chip px-3 py-1.5 text-sm font-medium shrink-0">{label}</a>
+        ))}
+      </nav>
+
       {/* Account Info Section */}
-      <section className="mt-6 mr-card p-5 space-y-4">
+      <section id="account" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-plum)", color: "#fff" }}>
             <User size={20} weight="regular" aria-hidden="true" />
@@ -115,7 +121,7 @@ export default function SettingsContent() {
       </section>
 
       {/* Security Section */}
-      <section className="mt-6 mr-card p-5 space-y-4">
+      <section id="security" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-gold)", color: "#24102e" }}>
             <Shield size={20} weight="regular" aria-hidden="true" />
@@ -146,7 +152,7 @@ export default function SettingsContent() {
       </section>
 
       {/* Content Filters Section */}
-      <section className="mt-6 mr-card p-5 space-y-4">
+      <section id="filters" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-ink)", color: "#fff" }}>
             <Eye size={20} weight="regular" aria-hidden="true" />
@@ -179,7 +185,7 @@ export default function SettingsContent() {
       </section>
 
       {/* Theme / Skin Section */}
-      <section className="mt-6 mr-card p-5 space-y-4">
+      <section id="theme" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-plum)", color: "#fff" }}>
             <Palette size={20} weight="regular" aria-hidden="true" />
@@ -196,7 +202,7 @@ export default function SettingsContent() {
       </section>
 
       {/* Privacy Policy & Data Section */}
-      <section className="mt-6 mr-card p-5 space-y-4">
+      <section id="privacy" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-gold)", color: "#24102e" }}>
             <File size={20} weight="regular" aria-hidden="true" />
@@ -205,14 +211,20 @@ export default function SettingsContent() {
         </div>
 
         <div className="space-y-3">
-          <Link href="/profile/export" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
-            <File size={20} weight="regular" aria-hidden="true" />
-            <span>Export My Data</span>
-          </Link>
-          <Link href="/profile/consent" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
-            <Globe size={20} weight="regular" aria-hidden="true" />
-            <span>Tracking Consent</span>
-          </Link>
+          <div className="mr-chip flex items-center justify-between gap-3 px-3 py-2 w-full opacity-70">
+            <span className="flex items-center gap-3">
+              <File size={20} weight="regular" aria-hidden="true" />
+              <span>Export My Data <span className="text-orange-600 text-xs">(Not yet implemented)</span></span>
+            </span>
+            <Button variant="ghost" disabled className="w-auto">Coming Soon</Button>
+          </div>
+          <div className="mr-chip flex items-center justify-between gap-3 px-3 py-2 w-full opacity-70">
+            <span className="flex items-center gap-3">
+              <Globe size={20} weight="regular" aria-hidden="true" />
+              <span>Tracking Consent <span className="text-orange-600 text-xs">(Not yet implemented)</span></span>
+            </span>
+            <Button variant="ghost" disabled className="w-auto">Coming Soon</Button>
+          </div>
           <Link href="/privacy" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
             <Shield size={20} weight="regular" aria-hidden="true" />
             <span>Privacy Policy</span>
@@ -240,7 +252,7 @@ export default function SettingsContent() {
       </section>
 
       {/* Support & Info Section */}
-      <section className="mt-6 mr-card p-5 space-y-4">
+      <section id="support" className="mt-6 mr-card p-5 space-y-4 scroll-mt-24">
         <div className="flex items-center gap-3">
           <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-ink)", color: "#fff" }}>
             <Info size={20} weight="regular" aria-hidden="true" />

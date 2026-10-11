@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { EmptyState, MovieCard } from "@/components/Movie";
 import { Button } from "@/components/Button";
 import { AppBar } from "@/components/AppBar";
+import { Dialog } from "@/components/Dialog";
 import { useToast } from "@/components/Toast";
 import type { Title } from "@/lib/types";
 
@@ -15,6 +16,9 @@ export default function RatingsContent() {
   const { push } = useToast();
   const [ratings, setRatings] = useState<{ title_id: string; score: number; liked: boolean; title?: Title }[]>([]);
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
+  const [sort, setSort] = useState<"score-desc" | "score-asc" | "liked">("score-desc");
+  const [editing, setEditing] = useState<{ title_id: string; score: number; liked: boolean; title?: string } | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!me) return;
@@ -47,6 +51,27 @@ export default function RatingsContent() {
     }
   };
 
+  const saveEdit = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      await api.rate({ title_id: editing.title_id, score: editing.score, liked: editing.liked });
+      setRatings(prev => prev.map(r => r.title_id === editing.title_id ? { ...r, score: editing.score, liked: editing.liked } : r));
+      push("Rating updated.");
+      setEditing(null);
+    } catch {
+      push("Couldn't save rating.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const visible = [...ratings].sort((a, b) => {
+    if (sort === "score-asc") return a.score - b.score;
+    if (sort === "liked") return Number(b.liked) - Number(a.liked) || b.score - a.score;
+    return b.score - a.score;
+  });
+
   if (loading) return <p role="status" className="p-8 text-center">Loading…</p>;
   if (!me) return <Link href={`/profile?next=/profile/ratings`}><p className="p-8 text-center">Please sign in</p></Link>;
 
@@ -74,8 +99,19 @@ export default function RatingsContent() {
         />
       )}
       {state === "ok" && ratings.length > 0 && (
-        <ul className="mt-4 flex flex-col gap-3" role="list">
-          {ratings.map((r) => (
+        <>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <label className="mr-chip flex items-center gap-2 px-3 py-1 text-sm">
+              Sort
+              <select aria-label="Sort ratings" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="bg-transparent font-semibold">
+                <option value="score-desc">Highest first</option>
+                <option value="score-asc">Lowest first</option>
+                <option value="liked">Liked first</option>
+              </select>
+            </label>
+          </div>
+          <ul className="mt-4 flex flex-col gap-3" role="list">
+          {visible.map((r) => (
             <li key={r.title_id} className="mr-card flex flex-col sm:flex-row gap-4 p-4">
               {r.title && (
                 <Link href={`/title/${r.title.id}`} className="shrink-0 w-24 h-36 sm:w-20 sm:h-30" aria-label={r.title.title}>
@@ -107,17 +143,51 @@ export default function RatingsContent() {
                     </span>
                   )}
                 </div>
-                <p className="mt-2 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button variant="ghost" onClick={() => setEditing({ title_id: r.title_id, score: r.score, liked: r.liked, title: r.title?.title })}>
+                    <Star size={14} weight="regular" aria-hidden="true" />
+                    Edit rating
+                  </Button>
                   <Button variant="ghost" onClick={() => handleDelete(r.title_id)}>
                     <Trash size={14} weight="regular" aria-hidden="true" />
                     Remove
                   </Button>
-                </p>
+                </div>
               </div>
             </li>
           ))}
         </ul>
+        </>
       )}
+      <Dialog open={!!editing} onClose={() => setEditing(null)} title={editing?.title ? `Rate ${editing.title}` : "Edit rating"}>
+        {editing && (
+          <div className="space-y-4">
+            <div className="flex gap-1" role="radiogroup" aria-label="Score">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  role="radio"
+                  aria-checked={editing.score === s}
+                  onClick={() => setEditing({ ...editing, score: s })}
+                  aria-label={`${s} star${s === 1 ? "" : "s"}`}
+                  className={`mr-chip px-3 py-2 font-bold ${editing.score === s ? "bg-[var(--mr-gold)] text-[#24102e]" : ""}`}
+                >
+                  {s}★
+                </button>
+              ))}
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={editing.liked} onChange={(e) => setEditing({ ...editing, liked: e.target.checked })} className="h-5 w-5" />
+              Liked it
+            </label>
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+              <Button variant="primary" onClick={saveEdit} disabled={saving}>{saving ? "Saving…" : "Save rating"}</Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }
