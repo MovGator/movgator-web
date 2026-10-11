@@ -1,6 +1,7 @@
 import type { FeedResponse, Genre, Title } from "./types";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+// Use relative paths when proxying through Next.js, fallback to absolute for SSR
+const BASE = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000");
 
 export class ApiError extends Error {
   status: number;

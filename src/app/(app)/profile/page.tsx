@@ -8,7 +8,6 @@ import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { Avatar } from "@/components/Avatar";
 import { Logo } from "@/components/Logo";
-import { MovieCard, EmptyState } from "@/components/Movie";
 import { Dialog } from "@/components/Dialog";
 import { AppBar } from "@/components/AppBar";
 import { InstallCard } from "@/components/InstallPrompt";
@@ -62,56 +61,56 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
     <div className="mx-auto max-w-md">
       <AppBar title="Profile" showBack={false} brand />
       <div className="mr-card p-6">
-      <Logo height={34} />
-      <h1 className="font-display mt-3 text-2xl font-bold">Your MovGator account</h1>
-      <p className="mt-1 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
-        Watchlist, ratings, onboarding taste and Movie Nights sync here. Browsing stays open to everyone.
-      </p>
-      <div className="mt-4 flex gap-2" role="tablist" aria-label="Sign in or create account">
-        {(["login", "register"] as const).map((m) => (
-          <button
-            key={m}
-            role="tab"
-            aria-selected={mode === m}
-            onClick={() => setMode(m)}
-            className="mr-chip px-4 py-2 text-sm font-semibold"
-            style={mode === m ? { background: "var(--mr-plum)", color: "#fff" } : undefined}
-          >
-            {m === "login" ? "Sign in" : "Create account"}
-          </button>
-        ))}
-      </div>
-      <form onSubmit={submit} className="mt-4 flex flex-col gap-3">
-        {mode === "register" && <Input label="Display name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="nickname" />}
-        <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-        <Input
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-          autoComplete={mode === "login" ? "current-password" : "new-password"}
-        />
-        {mode === "register" && (
-          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-            At least 8 characters with letters and numbers.
-          </p>
-        )}
-        {error && (
-          <p role="alert" className="text-sm font-medium text-red-600">
-            {error}
-          </p>
-        )}
-        <Button type="submit" disabled={busy}>
-          {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
-        </Button>
-      </form>
-      <div className="mt-3">
-        <Button variant="ghost" onClick={google} className="w-full">
-          Continue with Google
-        </Button>
-      </div>
+        <Logo height={34} />
+        <h1 className="font-display mt-3 text-2xl font-bold">Your MovGator account</h1>
+        <p className="mt-1 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+          Watchlist, ratings, onboarding taste and Movie Nights sync here. Browsing stays open to everyone.
+        </p>
+        <div className="mt-4 flex gap-2" role="tablist" aria-label="Sign in or create account">
+          {(["login", "register"] as const).map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => setMode(m)}
+              className="mr-chip px-4 py-2 text-sm font-semibold"
+              style={mode === m ? { background: "var(--mr-plum)", color: "#fff" } : undefined}
+            >
+              {m === "login" ? "Sign in" : "Create account"}
+            </button>
+          ))}
+        </div>
+        <form onSubmit={submit} className="mt-4 flex flex-col gap-3">
+          {mode === "register" && <Input label="Display name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="nickname" />}
+          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+          />
+          {mode === "register" && (
+            <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
+              At least 8 characters with letters and numbers.
+            </p>
+          )}
+          {error && (
+            <p role="alert" className="text-sm font-medium text-red-600">
+              {error}
+            </p>
+          )}
+          <Button type="submit" disabled={busy}>
+            {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
+          </Button>
+        </form>
+        <div className="mt-3">
+          <Button variant="ghost" onClick={google} className="w-full">
+            Continue with Google
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -140,7 +139,6 @@ function AvatarPickerDialog({
   useEffect(() => {
     if (open) {
       setSeed(currentSeed || "");
-      // Generate initial preview
       updatePreview();
     }
   }, [open, currentSeed]);
@@ -176,7 +174,6 @@ function AvatarPickerDialog({
   };
 
   const randomize = () => {
-    // Generate a random seed
     const newSeed = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     setSeed(newSeed);
     setPalette(PALETTES[Math.floor(Math.random() * PALETTES.length)]);
@@ -293,31 +290,23 @@ function AvatarPickerDialog({
   );
 }
 
-function Dashboard() {
-  const { me, refresh, signOut } = useAuth();
+function HubDashboard() {
+  const { me, refresh, signOut, loading } = useAuth();
   const { push } = useToast();
-  const router = useRouter();
-  const [watchlist, setWatchlist] = useState<Title[]>([]);
-  const [ratings, setRatings] = useState<{ title_id: string; score: number; liked: boolean }[]>([]);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
-  const [name, setName] = useState(me?.display_name ?? "");
-
-  useEffect(() => {
-    api.watchlist().then(setWatchlist).catch(() => {});
-    api.ratings().then(setRatings).catch(() => {});
-  }, []);
-
-  if (!me) return null;
 
   const handleAvatarSave = async (newSeed: string) => {
     await api.patchMe({ avatar_seed: newSeed });
     await refresh();
   };
 
+  if (!me) return null;
+
   return (
     <div className="mx-auto max-w-3xl">
       <AppBar title="Profile" showBack={false} brand />
+      
+      {/* Profile Header */}
       <div className="mr-card flex items-center gap-4 p-5">
         <Avatar name={me.display_name} url={me.avatar_url} size={72} />
         <div className="flex-1">
@@ -326,109 +315,80 @@ function Dashboard() {
             {me.email} · {me.email_verified ? "verified" : "unverified"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={() => setAvatarPickerOpen(true)}>
-            Change avatar
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={async () => {
-              await signOut();
-              router.push("/home");
-            }}
-          >
-            Log out
-          </Button>
-        </div>
+        <Button variant="ghost" onClick={() => setAvatarPickerOpen(true)}>
+          Change avatar
+        </Button>
       </div>
 
-      <section aria-labelledby="wl" className="mt-8">
-        <div className="flex items-baseline justify-between">
-          <h2 id="wl" className="font-display text-xl font-bold">
-            Watchlist ({watchlist.length})
-          </h2>
-          <Link href="/watchlist" className="text-sm font-semibold underline">
-            Open full list
+      {/* Navigation Tabs */}
+      <nav className="mt-6 mr-card p-2" aria-label="Profile sections">
+        <div className="flex gap-2" role="tablist">
+          <Link
+            href="/profile/info"
+            role="tab"
+            className="flex-1 mr-chip flex items-center justify-center gap-2 px-4 py-3 font-semibold"
+            style={{ background: "var(--mr-plum)", color: "#fff" }}
+          >
+            <span>Profile Information</span>
+          </Link>
+          <Link
+            href="/watchlist"
+            role="tab"
+            className="flex-1 mr-chip flex items-center justify-center gap-2 px-4 py-3 font-semibold"
+          >
+            <span>Watchlist</span>
+          </Link>
+          <Link
+            href="/profile/settings"
+            role="tab"
+            className="flex-1 mr-chip flex items-center justify-center gap-2 px-4 py-3 font-semibold"
+          >
+            <span>Settings</span>
           </Link>
         </div>
-        {watchlist.length === 0 ? (
-          <div className="mt-3">
-            <EmptyState title="Nothing saved yet" body="Tap &ldquo;Save for later&rdquo; on any title to build your list." />
-          </div>
-        ) : (
-          <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {watchlist.map((t) => (
-              <MovieCard key={t.id} title={t} />
-            ))}
-          </div>
-        )}
-      </section>
+      </nav>
 
-      <section aria-labelledby="rt" className="mt-8">
-        <h2 id="rt" className="font-display text-xl font-bold">
-          Your ratings ({ratings.length})
-        </h2>
-        <ul className="mt-3 flex flex-col gap-2 text-sm">
-          {ratings.map((r) => (
-            <li key={r.title_id} className="mr-card flex justify-between px-4 py-2">
-              <span className="font-mono text-xs">{r.title_id.slice(0, 8)}…</span>
-              <span aria-label={`Rated ${r.score} out of 5`}>{r.score} / 5{ r.liked ? " · liked" : ""}</span>
-            </li>
-          ))}
-          {ratings.length === 0 && <li style={{ color: "var(--mr-ink-soft)" }}>No ratings yet — rate any title from its page.</li>}
-        </ul>
-      </section>
+      {/* Quick Stats */}
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <Link href="/watchlist" className="mr-card p-4 text-center group">
+          <p className="text-2xl font-bold" style={{ color: "var(--mr-plum)" }}>0</p>
+          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Saved Titles</p>
+        </Link>
+        <Link href="/profile/ratings" className="mr-card p-4 text-center group">
+          <p className="text-2xl font-bold" style={{ color: "var(--mr-gold)" }}>0</p>
+          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Ratings Given</p>
+        </Link>
+        <Link href="/profile/settings" className="mr-card p-4 text-center group">
+          <p className="text-2xl font-bold" style={{ color: "var(--mr-ink)" }}>1</p>
+          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Account</p>
+        </Link>
+      </div>
 
-      <section aria-labelledby="set" className="mr-card mt-8 p-5">
-        <h2 id="set" className="font-display text-xl font-bold">Settings</h2>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-sm">Appearance</span>
-          <ThemeToggle />
-        </div>
-        <div className="mt-3">
-          <InstallCard compact />
-        </div>
-        <form
-          className="mt-3 flex flex-col gap-3"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              await api.patchMe({ display_name: name });
-              await refresh();
-              push("Profile updated.");
-            } catch {
-              push("Couldn't save settings.");
-            }
+      {/* Quick Actions */}
+      <div className="mt-6 mr-card p-5 space-y-3">
+        <h3 className="font-display text-lg font-bold">Quick Actions</h3>
+        <Link href="/watchlist" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
+          <span>My Watchlist</span>
+        </Link>
+        <Link href="/profile/ratings" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
+          <span>My Ratings</span>
+        </Link>
+        <Link href="/profile/settings" className="mr-chip flex items-center gap-3 px-3 py-2 text-left justify-start w-full">
+          <span>Settings</span>
+        </Link>
+      </div>
+
+      <div className="mt-6 flex gap-2">
+        <Button
+          variant="ghost"
+          onClick={async () => {
+            await signOut();
+            window.location.href = "/home";
           }}
         >
-          <Input label="Display name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
-          <div>
-            <Button type="submit">Save changes</Button>
-          </div>
-        </form>
-        <div className="mt-4">
-          <Button variant="danger" onClick={() => setConfirmDelete(true)}>
-            Delete account
-          </Button>
-        </div>
-      </section>
-
-      <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)} title="Delete your account?">
-        <p className="text-sm">This permanently removes your profile, watchlist, ratings and nights. This can&rsquo;t be undone.</p>
-        <div className="mt-4 flex gap-2">
-          <Button variant="ghost" onClick={() => setConfirmDelete(false)}>Keep my account</Button>
-          <Button
-            variant="danger"
-            onClick={async () => {
-              await api.deleteMe();
-              await signOut();
-              router.push("/");
-            }}
-          >
-            Delete everything
-          </Button>
-        </div>
-      </Dialog>
+          Log out
+        </Button>
+      </div>
 
       <AvatarPickerDialog
         open={avatarPickerOpen}
@@ -445,7 +405,7 @@ function ProfileInner() {
   const params = useSearchParams();
   const next = params.get("next") ?? "/home";
   if (loading) return <p role="status">Loading…</p>;
-  return me ? <Dashboard /> : <SignIn next={next} onDone={refresh} />;
+  return me ? <HubDashboard /> : <SignIn next={next} onDone={refresh} />;
 }
 
 export default function ProfilePage() {

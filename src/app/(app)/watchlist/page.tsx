@@ -29,7 +29,7 @@ export default function WatchlistPage() {
   if (!loading && !me) {
     return (
       <div className="mx-auto max-w-md">
-        <AppBar title="My Watchlist" backFallback="/profile" />
+<AppBar title="My Watchlist" backFallback="/profile" />
         <h1 className="font-display text-3xl font-extrabold">My Watchlist</h1>
         <div className="mt-4">
           <EmptyState
