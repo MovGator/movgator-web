@@ -19,6 +19,12 @@ const cspHeader = `
 
 const nextConfig = {
   reactStrictMode: true,
+  // Dev + build win: @phosphor-icons/react ships a giant barrel (5MB CJS/UMD
+  // in the package). Without this, Next compiles the whole barrel per route,
+  // slowing dev startup and HMR on every touched page. No UI/behavior change.
+  experimental: {
+    optimizePackageImports: ['@phosphor-icons/react'],
+  },
   async rewrites() {
     return [
       {

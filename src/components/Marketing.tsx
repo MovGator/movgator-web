@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, List, X } from "@phosphor-icons/react";
+import { ArrowRight, List, X, Envelope, UsersThree, Globe } from "@phosphor-icons/react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { NewsletterForm } from "./NewsletterForm";
@@ -95,65 +95,102 @@ export function MarketingNav() {
 
 export function MarketingFooter() {
   return (
-    <footer className="mt-16 px-4">
-      <div className="cine-panel mx-auto max-w-6xl text-center" style={{ borderRadius: 28 }}>
-        <h2 className="font-display mx-auto max-w-xl text-3xl font-extrabold text-[#f7f6f8] md:text-4xl">
-          Your next favourite film is one roll away.
-        </h2>
-        <p className="cine-caption mx-auto mt-2 max-w-md">
-          Browse free, roll the dice, and vote with friends — no account needed to start.
-        </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-3">
-          <Link href="/home" className="mkt-cta">
-            Enter the app
-          </Link>
-          <Link
-            href="/get-started"
-            className="inline-flex min-h-[56px] items-center rounded-full border px-6 font-semibold text-[#f7f6f8]"
-            style={{ borderColor: "rgb(247 246 248 / 0.35)" }}
-          >
-            Get started guide
-          </Link>
-        </div>
-      </div>
-      <div className="mx-auto grid max-w-6xl gap-8 py-12 text-sm sm:grid-cols-2 lg:grid-cols-12">
-        <div className="min-w-0 sm:col-span-2 lg:col-span-6">
-          <Logo />
-          <p className="mt-3 max-w-xs" style={{ color: "var(--mr-ink-soft)" }}>
-            Find what to watch tonight — films and anime, decided alone or together.
+    <footer className="mt-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="cine-panel text-center" style={{ borderRadius: 28 }}>
+          <h2 className="font-display mx-auto max-w-xl text-3xl font-extrabold text-[#f7f6f8] md:text-4xl">
+            Your next favourite film is one roll away.
+          </h2>
+          <p className="cine-caption mx-auto mt-2 max-w-md">
+            Browse free, roll the dice, and vote with friends — no account needed to start.
           </p>
-          <div className="mt-4">
-            <NewsletterForm variant="card" showDescription />
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Link href="/home" className="mkt-cta">
+              Enter the app
+            </Link>
+            <Link
+              href="/get-started"
+              className="inline-flex min-h-[56px] items-center rounded-full border px-6 font-semibold text-[#f7f6f8]"
+              style={{ borderColor: "rgb(247 246 248 / 0.35)" }}
+            >
+              Get started guide
+            </Link>
           </div>
         </div>
-        <nav aria-label="Product" className="lg:col-span-2">
-          <h2 className="font-display text-base font-bold">Product</h2>
-          <ul className="mt-2 grid gap-1" style={{ color: "var(--mr-ink-soft)" }}>
-            <li><Link className="inline-block rounded py-1 underline" href="/features">Features</Link></li>
-            <li><Link className="inline-block rounded py-1 underline" href="/how-it-works">How it works</Link></li>
-            <li><Link className="inline-block rounded py-1 underline" href="/use-cases">Use cases</Link></li>
-            <li><Link className="inline-block rounded py-1 underline" href="/get-started">Get started</Link></li>
-          </ul>
-        </nav>
-        <nav aria-label="Company" className="lg:col-span-2">
-          <h2 className="font-display text-base font-bold">Company</h2>
-          <ul className="mt-2 grid gap-1" style={{ color: "var(--mr-ink-soft)" }}>
-            <li><Link className="inline-block rounded py-1 underline" href="/about">About</Link></li>
-            <li><Link className="inline-block rounded py-1 underline" href="/faq">FAQ</Link></li>
-            <li><Link className="inline-block rounded py-1 underline" href="/contact">Contact</Link></li>
-          </ul>
-        </nav>
-        <nav aria-label="Legal" className="lg:col-span-2">
-          <h2 className="font-display text-base font-bold">Legal</h2>
-          <ul className="mt-2 grid gap-1" style={{ color: "var(--mr-ink-soft)" }}>
-            <li><Link className="inline-block rounded py-1 underline" href="/privacy">Privacy</Link></li>
-            <li><Link className="inline-block rounded py-1 underline" href="/terms">Terms</Link></li>
-          </ul>
-        </nav>
       </div>
-      <p className="mx-auto max-w-6xl pb-8 text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-        This product uses the TMDB API but is not endorsed or certified by TMDB.
-      </p>
+      <div className="mkt-footer-panel mt-12">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 text-sm sm:grid-cols-2 lg:grid-cols-12">
+          <div className="min-w-0 sm:col-span-2 lg:col-span-3">
+            <Logo />
+            <p className="font-display mt-5 text-xl font-extrabold leading-snug">
+              Find what to watch <em className="font-display italic">tonight.</em>
+            </p>
+            <p className="mt-3 max-w-xs leading-relaxed">
+              A quiet, spoiler-safe place to discover films and anime — alone or together.
+            </p>
+            <ul className="mt-6 grid gap-3">
+              <li>
+                <Link href="/contact" className="mkt-footer-row">
+                  <Envelope size={18} weight="regular" aria-hidden="true" />
+                  <span>Contact support</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/use-cases" className="mkt-footer-row">
+                  <UsersThree size={18} weight="regular" aria-hidden="true" />
+                  <span>For friends &amp; families</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="mkt-footer-row">
+                  <Globe size={18} weight="regular" aria-hidden="true" />
+                  <span>Watching worldwide</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <nav aria-label="Product" className="lg:col-span-2">
+            <h2 className="mkt-footer-h">Product</h2>
+            <ul className="mt-4 grid gap-1">
+              <li><Link className="mkt-footer-link" href="/features">Features</Link></li>
+              <li><Link className="mkt-footer-link" href="/how-it-works">How it works</Link></li>
+              <li><Link className="mkt-footer-link" href="/use-cases">Use cases</Link></li>
+              <li><Link className="mkt-footer-link" href="/get-started">Get started</Link></li>
+            </ul>
+          </nav>
+          <nav aria-label="Company" className="lg:col-span-2">
+            <h2 className="mkt-footer-h">Company</h2>
+            <ul className="mt-4 grid gap-1">
+              <li><Link className="mkt-footer-link" href="/about">About</Link></li>
+              <li><Link className="mkt-footer-link" href="/faq">FAQ</Link></li>
+              <li><Link className="mkt-footer-link" href="/contact">Contact</Link></li>
+            </ul>
+          </nav>
+          <nav aria-label="Legal" className="lg:col-span-2">
+            <h2 className="mkt-footer-h">Legal</h2>
+            <ul className="mt-4 grid gap-1">
+              <li><Link className="mkt-footer-link" href="/privacy">Privacy</Link></li>
+              <li><Link className="mkt-footer-link" href="/terms">Terms</Link></li>
+            </ul>
+          </nav>
+          <div className="min-w-0 sm:col-span-2 lg:col-span-3">
+            <h2 className="mkt-footer-h">Newsletter</h2>
+            <p className="mt-4 leading-relaxed">
+              New releases, hidden gems, and MovGator updates. No spam, unsubscribe anytime.
+            </p>
+            <div className="mt-4">
+              <NewsletterForm variant="footer" showDescription={false} />
+            </div>
+            <p className="mt-3 text-xs leading-relaxed">
+              Double opt-in — confirm from your inbox. Unsubscribe anytime.
+            </p>
+          </div>
+        </div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 pb-8 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 MovGator. All rights reserved.</p>
+          <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+        </div>
+      </div>
     </footer>
   );
 }

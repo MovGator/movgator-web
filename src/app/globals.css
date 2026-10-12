@@ -92,11 +92,7 @@ h1, h2, h3, .font-display {
   color: #fff;
   border-radius: 999px;
   font-weight: 600;
-  min-height: 44px;
-  min-width: 44px;
-  font-size: 16px;
   font-family: "Inter", system-ui, sans-serif;
-  padding-inline: 20px;
 }
 [data-theme="dark"] .mr-btn-primary {
   background: var(--mr-gold);
@@ -107,30 +103,22 @@ h1, h2, h3, .font-display {
   color: #24102e;
   border-radius: 999px;
   font-weight: 700;
-  min-height: 44px;
-  min-width: 44px;
-  font-size: 16px;
   font-family: "Inter", system-ui, sans-serif;
-  padding-inline: 20px;
 }
 .mr-chip {
   border: 1px solid var(--mr-line);
   border-radius: 999px;
-  font-size: 14px;
   font-family: "Inter", system-ui, sans-serif;
-  font-weight: 600;
 }
-/* Interactive chips keep 44px targets; static label pills (p/span) stay compact. */
+/* NOTE: no sizing/display declarations on interactive chips — element+class
+   selectors (0,1,1) would override the markup's own Tailwind utilities
+   (`px-3`, `lg:hidden`, …). Sizing comes from the utilities + the nav rule. */
 button.mr-chip,
 a.mr-chip,
 [role="button"].mr-chip {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 44px;
-  min-width: 44px;
-  padding-inline: 16px;
 }
 
 /* Poster rails: horizontal scroll-snap, restrained */
@@ -192,44 +180,10 @@ a.mr-chip,
   animation: slideUp 0.3s ease-out;
 }
 
-/* Touch targets — 44px minimum for controls (Apple HIG).
-   Scoped to real controls: blanket `a` sizing would stretch every inline
-   text link (footer, body copy) into 44px rows. Inline links keep the
-   WCAG 2.2 inline exception; button-like links opt in below. */
-button, [role="button"] {
-  min-height: 44px;
-  min-width: 44px;
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.25;
+/* Touch targets — matches the live design: 24px base, 44px inside nav. */
+a, button {
+  min-height: 24px;
 }
-a.mr-chip,
-a.mr-btn-primary,
-a.mr-btn-gold,
-a.mkt-cta,
-a.mkt-cta-arrow,
-a.app-side-item,
-a.app-tab,
-a.app-dice-orb {
-  min-height: 44px;
-  min-width: 44px;
-}
-button.small, [role="button"].small, a.small {
-  min-height: 36px;
-  min-width: 36px;
-  font-size: 14px;
-}
-
-/* Icon-only buttons (appbar, sidebar toggle) - ensure 44x44 */
-.appbar-btn,
-.app-sidebar-toggle {
-  min-height: 44px;
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 nav a, nav button {
   min-height: 44px;
   min-width: 44px;
@@ -665,14 +619,14 @@ input::placeholder, textarea::placeholder {
   .mkt-nav-links { display: flex; }
 }
 .mkt-nav-links a {
-  min-height: 44px;
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   padding-inline: 14px;
   border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--mr-ink);
+  color: var(--mr-ink-soft);
 }
 .mkt-nav-links a:hover {
   background: var(--mr-surface-2);
@@ -692,9 +646,283 @@ input::placeholder, textarea::placeholder {
   box-shadow: 0 18px 44px rgb(0 0 0 / 0.2);
 }
 
+/* Footer panel — full-bleed deep plum, always dark like the reference. */
+.mkt-footer-panel {
+  position: relative;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background: linear-gradient(180deg, #24102e 0%, #160a1d 100%);
+  color: #f7f6f8;
+}
+.mkt-footer-h {
+  font-family: var(--mr-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f7f6f8;
+}
+.mkt-footer-h::after {
+  content: "";
+  display: block;
+  width: 24px;
+  height: 2px;
+  margin-top: 10px;
+  background: var(--mr-gold);
+  border-radius: 999px;
+}
+.mkt-footer-panel p {
+  color: rgb(247 246 248 / 0.78);
+}
+.mkt-footer-panel em {
+  color: #f7f6f8;
+}
+.mkt-footer-link {
+  display: inline-block;
+  border-radius: 6px;
+  padding-block: 6px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgb(247 246 248 / 0.78);
+  text-decoration: none;
+}
+.mkt-footer-link:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.mkt-footer-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  padding-block: 6px;
+  min-height: 44px;
+  font-size: 16px;
+  color: rgb(247 246 248 / 0.78);
+  text-decoration: none;
+}
+.mkt-footer-row:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+/* In-page newsletter banner — cinematic panel echoing the hero: gold glow over
+   deep plum, centered display type, pill field + gold pill submit. */
+.nl-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid var(--mr-line);
+  background:
+    radial-gradient(90% 130% at 50% -20%, rgb(245 166 35 / 0.22), transparent 60%),
+    linear-gradient(170deg, var(--mr-plum-deep), var(--mr-plum) 140%);
+  color: #f7f6f8;
+  text-align: center;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.25rem, 4vw, 3rem);
+}
+.nl-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgb(247 246 248 / 0.25);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f7f6f8;
+}
+.nl-title {
+  margin-top: 14px;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.nl-sub {
+  margin: 10px auto 0;
+  max-width: 34rem;
+  color: rgb(247 246 248 / 0.78);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.nl-form {
+  display: flex;
+  gap: 12px;
+  max-width: 560px;
+  margin: 22px auto 0;
+}
+.nl-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  border: 1px solid rgb(247 246 248 / 0.3);
+  border-radius: 999px;
+  background: rgb(7 2 9 / 0.35);
+  padding: 0 8px 0 20px;
+  color: rgb(247 246 248 / 0.6);
+}
+.nl-field:focus-within {
+  border-color: var(--mr-gold);
+  box-shadow: 0 0 0 3px rgb(245 166 35 / 0.35);
+}
+.nl-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: #f7f6f8;
+  font-size: 16px;
+  font-family: var(--mr-font-body);
+}
+.nl-input::placeholder {
+  color: rgb(247 246 248 / 0.5);
+  opacity: 1;
+}
+.nl-input:focus {
+  outline: none;
+}
+.nl-submit {
+  min-height: 56px;
+  padding-inline: 32px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--mr-gold);
+  color: #24102e;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.nl-submit:hover {
+  filter: brightness(1.05);
+}
+.nl-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.nl-note {
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgb(247 246 248 / 0.75);
+}
+.nl-error {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffd9d9;
+}
+.nl-legal {
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgb(247 246 248 / 0.65);
+}
+.nl-legal a {
+  color: #f7f6f8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 560px) {
+  .nl-form {
+    flex-direction: column;
+  }
+  .nl-submit {
+    width: 100%;
+  }
+}
+/* Footer newsletter: rounded pill row + circular gold arrow submit. */
+.nl-footer {
+  max-width: 340px;
+}
+.nl-footer-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgb(247 246 248 / 0.35);
+  border-radius: 999px;
+  background: transparent;
+  padding: 4px;
+}
+.nl-footer-row:focus-within {
+  border-color: var(--mr-gold);
+}
+.nl-footer-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #f7f6f8;
+  padding: 0 6px 0 16px;
+  font-size: 16px;
+  font-family: var(--mr-font-body);
+}
+.nl-footer-input::placeholder {
+  color: rgb(247 246 248 / 0.55);
+  opacity: 1;
+}
+.nl-footer-input:focus {
+  outline: none;
+}
+.nl-footer-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--mr-gold);
+  color: #24102e;
+  border: 0;
+  cursor: pointer;
+}
+.nl-footer-submit:hover {
+  filter: brightness(1.05);
+}
+.nl-footer-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.nl-footer-note {
+  margin-top: 10px;
+  font-size: 14px;
+  color: rgb(247 246 248 / 0.7);
+}
+.nl-footer-error {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffd9d9;
+}
+.nl-footer-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 340px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #f7f6f8;
+}
+
 .mkt-hero {
   text-align: center;
-  padding: 3.5rem 1rem 2.5rem;
+  padding: 2.5rem 1rem 3rem;
+}
+@media (min-width: 768px) {
+  .mkt-hero {
+    padding-top: 3.5rem;
+  }
 }
 .mkt-display {
   font-family: var(--mr-font-display);
@@ -730,19 +958,21 @@ input::placeholder, textarea::placeholder {
   color: #24102e;
   font-weight: 800;
   letter-spacing: 0.04em;
-  font-size: 16px;
+  font-size: 15px;
 }
 .mkt-cta:focus-visible,
 .mkt-cta-arrow:focus-visible {
   z-index: 1;
 }
 .mkt-cta-arrow {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 56px;
   height: 56px;
-  margin-left: -8px;
+  flex: none;
+  margin-left: -14px;
   border-radius: 999px;
   background: var(--mr-gold);
   color: #24102e;

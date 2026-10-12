@@ -162,8 +162,7 @@ export default async function LandingPage() {
 
       {feed && <PosterRail heading="Popular right now" items={popular} href="/home" />}
 
-      <section aria-labelledby="newsletter-heading" className="mt-12 mx-auto max-w-2xl">
-        <h2 id="newsletter-heading" className="sr-only">Newsletter signup</h2>
+      <section aria-labelledby="nl-title" className="mt-12">
         <NewsletterForm variant="card" showDescription />
       </section>
 

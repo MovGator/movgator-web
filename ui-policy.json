@@ -45,6 +45,7 @@
       "selector": "button, [role=button], .mr-btn-primary, .mr-btn-gold, .mr-chip",
       "sizes": [
         14,
+        15,
         16
       ]
     },
@@ -53,6 +54,7 @@
       "sizes": [
         12,
         14,
+        15,
         16
       ]
     },

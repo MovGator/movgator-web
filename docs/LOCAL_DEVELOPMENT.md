@@ -16,3 +16,10 @@ npx tsc --noEmit; npm run build; npx playwright test
   Manifest/Service Workers; test offline via the Offline page.
 - Themes: toggle in the marketing header and app Profile settings;
   persisted `localStorage mr-theme`, OS default, no-flash inline script.
+- Fast local loop (slow startup / hot reloads):
+  - `npm run dev:turbo` uses Turbopack (`next dev --turbo`) — much faster
+    startup and HMR. Default `npm run dev` is unchanged (webpack).
+  - `@phosphor-icons/react` is compiled via `experimental.optimizePackageImports`
+    so dev only builds the icons each page imports, not the whole barrel.
+  - The service worker registers in production builds only; in `next dev` it
+    stays off so cached shells can't mask HMR updates.
