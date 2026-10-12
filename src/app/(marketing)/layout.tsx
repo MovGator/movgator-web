@@ -9,7 +9,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <>
       <MarketingNav />
-      <main id="main" className="mx-auto max-w-6xl px-4 pb-16 pt-6 md:pt-10">
+      <main id="main" className="mx-auto max-w-6xl px-4 pb-16 pt-6 md:pt-10" data-app-ready>
         {children}
       </main>
       <MarketingFooter />

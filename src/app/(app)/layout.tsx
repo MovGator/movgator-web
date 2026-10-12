@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-app-ready>
       <ServiceWorkerRegister />
       <AppSidebar />
       <div className="app-content">

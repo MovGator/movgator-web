@@ -1,0 +1,131 @@
+{
+  "fonts": [
+    "Sora",
+    "Inter",
+    "system-ui",
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "SF Pro Text",
+    "SF Pro Display"
+  ],
+  "fontSizes": [
+    12,
+    14,
+    16,
+    18,
+    20,
+    24,
+    30,
+    36,
+    48
+  ],
+  "typeRules": [
+    {
+      "selector": "h1, .font-display.text-5xl, .font-display.text-4xl",
+      "sizes": [
+        36,
+        48
+      ]
+    },
+    {
+      "selector": "h2, .font-display.text-3xl, .font-display.text-2xl",
+      "sizes": [
+        24,
+        30
+      ]
+    },
+    {
+      "selector": "h3, .font-display.text-xl, .font-display.text-lg",
+      "sizes": [
+        18,
+        20
+      ]
+    },
+    {
+      "selector": "button, [role=button], .mr-btn-primary, .mr-btn-gold, .mr-chip",
+      "sizes": [
+        14,
+        16
+      ]
+    },
+    {
+      "selector": "p, span, label, li, td, th, a, input, select, textarea",
+      "sizes": [
+        12,
+        14,
+        16
+      ]
+    },
+    {
+      "selector": ".text-sm",
+      "sizes": [
+        14
+      ]
+    },
+    {
+      "selector": ".text-xs",
+      "sizes": [
+        12
+      ]
+    },
+    {
+      "selector": ".text-base",
+      "sizes": [
+        16
+      ]
+    },
+    {
+      "selector": ".text-lg",
+      "sizes": [
+        18
+      ]
+    }
+  ],
+  "minControlSize": 44,
+  "controlSizeRules": [
+    {
+      "selector": "button, [role=button], a",
+      "minSize": 44
+    },
+    {
+      "selector": "nav a, nav button",
+      "minSize": 44
+    },
+    {
+      "selector": "input, select, textarea",
+      "minSize": 44
+    }
+  ],
+  "minControlGap": 8,
+  "minControlInset": 8,
+  "controlContainers": [
+    "[data-ui-container]",
+    ".app-tabbar-pill",
+    ".app-sidebar-section ul",
+    ".mkt-nav-links",
+    ".app-topbar"
+  ],
+  "minLayoutGap": 16,
+  "bannedCopy": [
+    "unlock your potential",
+    "seamlessly",
+    "game-changing",
+    "revolutionize",
+    "best-in-class"
+  ],
+  "viewports": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "colorSchemes": [
+    "light",
+    "dark"
+  ],
+  "exceptions": []
+}
