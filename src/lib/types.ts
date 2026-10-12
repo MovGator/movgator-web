@@ -62,5 +62,6 @@ export interface Me {
   avatar_url?: string | null;
   theme: "light" | "dark" | "system";
   onboarding_done: boolean;
-  auth_provider: "password" | "google";
+  auth_provider: string;
+  age_verified: boolean;
 }

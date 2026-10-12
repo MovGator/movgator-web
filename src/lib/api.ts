@@ -139,9 +139,11 @@ export const api = {
   watchedAdd: (title_id: string) =>
     req<{ ok: boolean }>(`/api/v1/me/watched`, { method: "POST", body: JSON.stringify({ title_id }) }),
   swipe: (body: object) => req<{ ok: boolean }>(`/api/v1/me/swipes`, { method: "POST", body: JSON.stringify(body) }),
-  prefs: () => req<{ favourite_genres: string[]; include_anime: boolean }>(`/api/v1/me/preferences`),
+  prefs: () => req<{ favourite_genres: string[]; include_anime: boolean; adult_filter_enabled: boolean; age_verified: boolean }>(`/api/v1/me/preferences`),
   prefsPatch: (body: object) =>
     req<{ ok: boolean }>(`/api/v1/me/preferences`, { method: "PATCH", body: JSON.stringify(body) }),
+  verifyAge: (dob: string) =>
+    req<{ ok: boolean; age_verified: boolean }>(`/api/v1/me/age-verification`, { method: "POST", body: JSON.stringify({ dob }) }),
   nightCreate: (body: { name: string; scheduled_at?: string | null; blind_voting?: boolean; prefs?: Record<string, unknown> }) =>
     req<NightCreated>(
       `/api/v1/movie-nights`, { method: "POST", body: JSON.stringify(body) }

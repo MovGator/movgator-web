@@ -33,8 +33,9 @@ export default function PrivacyPage() {
           <li><Link href="#cookies" className="text-sm underline">7. Cookies & Local Storage</Link></li>
           <li><Link href="#security" className="text-sm underline">8. Security</Link></li>
           <li><Link href="#children" className="text-sm underline">9. Children's Privacy</Link></li>
-          <li><Link href="#changes" className="text-sm underline">10. Changes to This Policy</Link></li>
-          <li><Link href="#contact" className="text-sm underline">11. Contact Us</Link></li>
+          <li><Link href="#content-safety" className="text-sm underline">10. Content Safety & Age Verification</Link></li>
+          <li><Link href="#changes" className="text-sm underline">11. Changes to This Policy</Link></li>
+          <li><Link href="#contact" className="text-sm underline">12. Contact Us</Link></li>
         </ul>
       </nav>
 
@@ -49,6 +50,7 @@ export default function PrivacyPage() {
           <li><strong>Activity data:</strong> Your watchlist, ratings (1–5 stars + liked flag), watched history, and swipe signals (like/pass) used for Dice recommendations.</li>
           <li><strong>Movie Night data:</strong> Nights you create or join, votes you cast, and candidates you add. Invite tokens are hashed and expire after 7 days.</li>
           <li><strong>Technical logs:</strong> Request IDs, timestamps, and error details (retained up to 30 days for debugging). No IP-based profiling.</li>
+          <li><strong>Safety preferences:</strong> Your adult-content filter setting (on by default) and, if you complete it, your age-verification outcome (verified flag, timestamp, method).</li>
         </ul>
         <p className="mt-3 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
           <strong>Public browsing</strong> (feed, search, title pages, Dice preview) requires no account and we store no profile against it.
@@ -59,6 +61,7 @@ export default function PrivacyPage() {
         <h2 className="font-display text-2xl font-bold">2. Data We Don't Collect</h2>
         <ul className="mt-3 list-disc pl-6 space-y-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
           <li>No payment or billing information (the service is free).</li>
+          <li>No dates of birth, ID documents, or biometric data — age verification keeps only the pass/fail outcome.</li>
           <li>No precise geolocation, contacts, camera, microphone, or device sensors.</li>
           <li>No sale or rental of personal data to third parties.</li>
           <li>No third-party advertising trackers, pixels, or fingerprinting scripts in the app shell.</li>
@@ -93,6 +96,7 @@ export default function PrivacyPage() {
           <li><strong>Account data:</strong> Retained until you delete your account (Profile → Delete account), which permanently removes your profile, watchlist, ratings, watched history, swipe signals, and Movie Night votes.</li>
           <li><strong>Movie Night sessions:</strong> Invite tokens are hashed (SHA-256) and expire after 7 days. Night data is retained until the host deletes it or all members leave.</li>
           <li><strong>Logs:</strong> Request IDs and error details retained up to 30 days for debugging and security.</li>
+          <li><strong>Safety records:</strong> Your filter preference and age-verification outcome are kept until you change the setting or delete your account (which removes them with everything else). Failed verification attempts are rate-limited and never stored as personal data.</li>
           <li><strong>Backups:</strong> Database backups (if configured) follow the same retention; deleted data is removed on the next backup cycle.</li>
         </ul>
       </section>
@@ -180,18 +184,30 @@ export default function PrivacyPage() {
         <h2 className="font-display text-2xl font-bold">9. Children's Privacy</h2>
         <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
           MovGator is not directed to children under 13 (or the applicable age in your jurisdiction). We do not knowingly collect personal data from children. If you believe a child has provided data, <Link href="/contact" className="underline">contact us</Link> and we will delete it.
+          Adult or sexually explicit titles are additionally hidden for everyone by default and require a completed 18+ age verification to view (see section 10).
         </p>
       </section>
 
+      <section id="content-safety" className="mt-8">
+        <h2 className="font-display text-2xl font-bold">10. Content Safety & Age Verification</h2>
+        <ul className="mt-3 list-disc pl-6 space-y-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
+          <li><strong>Filter by default:</strong> Adult or sexually explicit titles (flagged via TMDB's adult classification) are hidden by default for everyone — including signed-out visitors — across feeds, search, recommendations, Dice picks, title pages, and related titles.</li>
+          <li><strong>18+ gate:</strong> Turning the adult-content filter off (Profile → Settings → Content Filters) requires completing age verification confirming you are at least 18 years old. Unverified users cannot disable the filter; the server enforces this even if the app UI is bypassed.</li>
+          <li><strong>What we store:</strong> Only the verification <em>outcome</em> (verified flag, timestamp, method). Your date of birth is checked once in memory and never stored, logged, or transmitted anywhere else. No ID documents are collected by the built-in flow.</li>
+          <li><strong>Third-party verifiers:</strong> If a dedicated identity provider is ever enabled (configured via <span className="font-mono">AGE_VERIFICATION_PROVIDER</span>), its own privacy terms apply to that step; we still keep only the outcome. We will update this section before enabling one.</li>
+          <li><strong>No circumvention:</strong> Adult titles are excluded server-side from catalogue responses and direct title links return "not found" for filtered users, so they cannot be reached via shared URLs, cached pages, or API calls.</li>
+        </ul>
+      </section>
+
       <section id="changes" className="mt-8">
-        <h2 className="font-display text-2xl font-bold">10. Changes to This Policy</h2>
+        <h2 className="font-display text-2xl font-bold">11. Changes to This Policy</h2>
         <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
           We may update this policy as the service evolves. Material changes will be announced in-app and via the email on your account (if provided). Continued use after changes constitutes acceptance.
         </p>
       </section>
 
       <section id="contact" className="mt-8">
-        <h2 className="font-display text-2xl font-bold">11. Contact Us</h2>
+        <h2 className="font-display text-2xl font-bold">12. Contact Us</h2>
         <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
           Questions about this policy or your data? <Link href="/contact" className="underline font-medium">Visit our Contact page</Link> or email the address associated with your account.
         </p>

@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { Avatar } from "@/components/Avatar";
+import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
 import { Dialog } from "@/components/Dialog";
 import { AppBar } from "@/components/AppBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -46,6 +47,45 @@ export default function SettingsContent() {
     if (typeof window !== "undefined") {
       window.history.replaceState(null, "", `#${tab}`);
     }
+  };
+
+  const [filterOn, setFilterOn] = useState(true);
+  const [filterLoaded, setFilterLoaded] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
+
+  useEffect(() => {
+    if (!me) return;
+    api.prefs()
+      .then((p) => {
+        setFilterOn(p.adult_filter_enabled);
+        setFilterLoaded(true);
+      })
+      .catch(() => setFilterLoaded(true));
+  }, [me]);
+
+  const setFilter = async (on: boolean) => {
+    try {
+      await api.prefsPatch({ adult_filter_enabled: on });
+      setFilterOn(on);
+      push(on ? "Adult-content filter is on." : "Adult-content filter is off.");
+      await refresh();
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "age_verification_required") {
+        setVerifyOpen(true);
+      } else {
+        push(err instanceof ApiError ? err.message : "Couldn't save filter setting.");
+      }
+    }
+  };
+
+  const handleFilterToggle = (on: boolean) => {
+    // Disabling requires a completed age verification; the server
+    // enforces this too, but we open the dialog directly for clarity.
+    if (!on && !me?.age_verified) {
+      setVerifyOpen(true);
+      return;
+    }
+    setFilter(on);
   };
 
   useEffect(() => {
@@ -208,13 +248,30 @@ export default function SettingsContent() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Adult Content Filter</p>
-              <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>Hide mature-rated content from recommendations and search.</p>
+              <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
+                {filterOn
+                  ? "On — mature-rated titles stay hidden everywhere."
+                  : "Off — mature-rated titles are visible."}{" "}
+                {!me?.age_verified && "Turning it off requires age verification."}
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" defaultChecked />
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={filterOn}
+                disabled={!filterLoaded}
+                onChange={(e) => handleFilterToggle(e.target.checked)}
+                aria-label="Adult content filter"
+              />
               <div className="w-11 h-6 bg-[var(--mr-line)] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[var(--mr-plum)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--mr-plum)]" />
             </label>
           </div>
+          <AgeVerificationDialog
+            open={verifyOpen}
+            onClose={() => setVerifyOpen(false)}
+            onVerified={() => setFilter(false)}
+          />
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Parental Controls</p>

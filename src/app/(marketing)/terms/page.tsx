@@ -34,7 +34,8 @@ export default function TermsPage() {
           <li><Link href="#termination" className="text-sm underline">8. Termination</Link></li>
           <li><Link href="#governing-law" className="text-sm underline">9. Governing Law</Link></li>
           <li><Link href="#changes" className="text-sm underline">10. Changes</Link></li>
-          <li><Link href="#contact" className="text-sm underline">11. Contact</Link></li>
+          <li><Link href="#age-restrictions" className="text-sm underline">11. Age Restrictions & Mature Content</Link></li>
+          <li><Link href="#contact" className="text-sm underline">12. Contact</Link></li>
         </ul>
       </nav>
 
@@ -62,7 +63,7 @@ export default function TermsPage() {
       <section id="accounts" className="mt-8">
         <h2 className="font-display text-2xl font-bold">3. Accounts & Registration</h2>
         <ul className="mt-3 list-disc pl-6 space-y-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
-          <li><strong>Eligibility:</strong> You must be at least 13 years old (or the minimum age in your jurisdiction) to create an account.</li>
+          <li><strong>Eligibility:</strong> You must be at least 13 years old (or the minimum age in your jurisdiction) to create an account. Viewing adult or sexually explicit titles additionally requires completing age verification confirming you are at least 18 (see section 12).</li>
           <li><strong>Accuracy:</strong> Provide accurate, current information. Keep your email and password secure.</li>
           <li><strong>Security:</strong> You are responsible for all activity under your account. Notify us immediately of any unauthorized use via the Contact page.</li>
           <li><strong>Passwords:</strong> Must be at least 8 characters with letters and numbers. We hash passwords with Argon2id and never store them in plaintext.</li>
@@ -79,6 +80,7 @@ export default function TermsPage() {
         <ul className="mt-3 list-disc pl-6 space-y-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
           <li>Abuse rate limits, scrape, or crawl the Service beyond normal interactive use.</li>
           <li>Attempt to access other users' private data, invite tokens, or session cookies.</li>
+          <li>Circumvent content filtering or age verification (e.g., sharing adult titles to evade filters, misrepresenting your age).</li>
           <li>Share Movie Night invite links beyond your intended group or post them publicly.</li>
           <li>Use automated scripts, bots, or the API for competitive analysis, data harvesting, or spam.</li>
           <li>Impersonate another user or entity, or misrepresent your affiliation.</li>
@@ -148,8 +150,19 @@ export default function TermsPage() {
         </p>
       </section>
 
+      <section id="age-restrictions" className="mt-8">
+        <h2 className="font-display text-2xl font-bold">11. Age Restrictions & Mature Content</h2>
+        <ul className="mt-3 list-disc pl-6 space-y-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
+          <li><strong>Filtered by default:</strong> Titles classified as adult or sexually explicit are hidden by default for all users — signed out or signed in — across feeds, search, recommendations, Dice picks, title pages, and related titles. Direct links to such titles do not resolve while filtered.</li>
+          <li><strong>18+ gate:</strong> You may only disable the adult-content filter (Profile → Settings → Content Filters) after completing age verification confirming you are at least 18 years old. Attempting to bypass verification violates these Terms and may lead to suspension.</li>
+          <li><strong>Verification data:</strong> We store only the verification outcome (verified flag, timestamp, method). Dates of birth and any identity documents are never retained. See the Privacy Policy for details.</li>
+          <li><strong>Accuracy limits:</strong> Classifications come from our metadata provider (TMDB) and may be incomplete. The filter is a safety aid, not a guarantee; parents and guardians should still supervise minors' use.</li>
+          <li><strong>Your responsibility:</strong> Do not share adult titles with, or disable the filter on behalf of, anyone under 18 or anyone who has not personally completed verification.</li>
+        </ul>
+      </section>
+
       <section id="contact" className="mt-8">
-        <h2 className="font-display text-2xl font-bold">11. Contact</h2>
+        <h2 className="font-display text-2xl font-bold">12. Contact</h2>
         <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--mr-ink-soft)" }}>
           Questions about these Terms? <Link href="/contact" className="underline font-medium">Visit our Contact page</Link> or email the address associated with your account.
         </p>
