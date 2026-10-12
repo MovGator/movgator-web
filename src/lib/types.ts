@@ -56,6 +56,7 @@ export interface Me {
   id: string;
   email: string;
   email_verified: boolean;
+  email_verification_required: boolean;
   display_name: string;
   avatar_provider: string;
   avatar_seed?: string | null;
@@ -64,4 +65,5 @@ export interface Me {
   onboarding_done: boolean;
   auth_provider: string;
   age_verified: boolean;
+  has_password: boolean;
 }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowRight, List, X } from "@phosphor-icons/react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { NewsletterForm } from "./NewsletterForm";
 
 const LINKS = [
   { href: "/features", label: "Features" },
@@ -116,11 +117,12 @@ export function MarketingFooter() {
         </div>
       </div>
       <div className="mx-auto grid max-w-6xl gap-8 py-12 text-sm md:grid-cols-4">
-        <div>
+        <div className="md:col-span-2">
           <Logo />
           <p className="mt-3 max-w-xs" style={{ color: "var(--mr-ink-soft)" }}>
             Find what to watch tonight — films and anime, decided alone or together.
           </p>
+          <NewsletterForm variant="card" showDescription />
         </div>
         <nav aria-label="Product">
           <h2 className="font-display font-bold">Product</h2>

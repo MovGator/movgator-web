@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppTabBar, AppSidebar, AppTopbar } from "@/components/AppNav";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { EmailVerificationGuard } from "@/components/EmailVerificationGuard";
 
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
@@ -17,7 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="app-content">
         <AppTopbar />
         <main id="main" className="app-main">
-          {children}
+          <EmailVerificationGuard>{children}</EmailVerificationGuard>
         </main>
       </div>
       <AppTabBar />

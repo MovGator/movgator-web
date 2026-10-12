@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -19,6 +19,116 @@ const PALETTES = ["violet", "mint", "peach", "sky", "rose", "sand", "mono", "aut
 const MOODS = ["happy", "chill", "brave", "dreamy", "wild"] as const;
 const TILE_BGS = ["auto", "#070209", "#f7f6f8", "#3b1f4a", "#f5a623"] as const;
 
+function ForgotPasswordDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [step, setStep] = useState<"request" | "verify" | "reset">("request");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { push } = useToast();
+  const resetTokenRef = useRef<string | null>(null);
+
+  const handleRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      await api.forgotPasswordRequest(email);
+      push("If that email exists, a code has been sent.");
+      setStep("verify");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Couldn't send code.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const res = await api.forgotPasswordVerify(email, code);
+      resetTokenRef.current = res.reset_token;
+      setStep("reset");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Invalid or expired code.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (!resetTokenRef.current) {
+      setError("Session expired. Please start over.");
+      setStep("request");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await api.forgotPasswordReset(resetTokenRef.current, password);
+      push("Password reset. You can now sign in.");
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Couldn't reset password.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <Dialog open={open} onClose={onClose} title="Reset your password" maxWidth="max-w-md">
+      {step === "request" && (
+        <form onSubmit={handleRequest} className="space-y-3">
+          <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+            Enter your email and we&rsquo;ll send a 6-digit code.
+          </p>
+          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
+          <div className="flex gap-2 pt-2">
+            <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={busy} className="flex-1">{busy ? "Sending…" : "Send code"}</Button>
+          </div>
+        </form>
+      )}
+      {step === "verify" && (
+        <form onSubmit={handleVerify} className="space-y-3">
+          <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+            Enter the 6-digit code sent to <strong>{email}</strong>.
+          </p>
+          <Input label="Code" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} pattern="[0-9]*" inputMode="numeric" required autoComplete="one-time-code" />
+          {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
+          <div className="flex gap-2 pt-2">
+            <Button variant="ghost" type="button" onClick={() => { setStep("request"); setError(""); }}>Back</Button>
+            <Button type="submit" disabled={busy} className="flex-1">{busy ? "Verifying…" : "Verify code"}</Button>
+          </div>
+        </form>
+      )}
+      {step === "reset" && (
+        <form onSubmit={handleReset} className="space-y-3">
+          <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>Set your new password.</p>
+          <Input label="New Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
+          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>At least 8 characters with letters and numbers.</p>
+          {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
+          <div className="flex gap-2 pt-2">
+            <Button variant="ghost" type="button" onClick={() => { setStep("verify"); setError(""); }}>Back</Button>
+            <Button type="submit" disabled={busy} className="flex-1">{busy ? "Resetting…" : "Reset password"}</Button>
+          </div>
+        </form>
+      )}
+    </Dialog>
+  );
+}
+
 function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
@@ -26,6 +136,7 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
   const router = useRouter();
 
   const submit = async (e: React.FormEvent) => {
@@ -97,6 +208,13 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
               At least 8 characters with letters and numbers.
             </p>
           )}
+          {mode === "login" && (
+            <div className="text-right">
+              <Button variant="ghost" type="button" onClick={() => setForgotOpen(true)} className="text-xs px-3 py-1">
+                Forgot password?
+              </Button>
+            </div>
+          )}
           {error && (
             <p role="alert" className="text-sm font-medium text-red-600">
               {error}
@@ -112,6 +230,7 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
           </Button>
         </div>
       </div>
+      <ForgotPasswordDialog open={forgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }

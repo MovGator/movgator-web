@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import type { Title, FeedSection } from "@/lib/types";
 import { MovieCard, PosterRail } from "@/components/Movie";
 import { PosterArt } from "@/components/PosterArt";
+import { NewsletterForm } from "@/components/NewsletterForm";
 
 export const revalidate = 120;
 
@@ -160,6 +161,10 @@ export default async function LandingPage() {
       </section>
 
       {feed && <PosterRail heading="Popular right now" items={popular} href="/home" />}
+
+      <section aria-labelledby="newsletter" className="mt-12 mx-auto max-w-2xl">
+        <NewsletterForm variant="card" showDescription />
+      </section>
 
       <section aria-labelledby="explore" className="mt-12 grid gap-4 sm:grid-cols-3">
         <Link href="/features" className="mr-card block p-5">

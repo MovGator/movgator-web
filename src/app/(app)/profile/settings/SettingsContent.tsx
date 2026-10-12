@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, Key, Shield, Eye, Palette, File, Info, Trash, User, Envelope, Bell, Globe, Gear, List } from "@phosphor-icons/react";
+import { ArrowLeft, Key, Shield, Eye, Palette, File, Info, Trash, User, Envelope, Bell, Globe, Gear, List, Lock, LockOpen } from "@phosphor-icons/react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { Input } from "@/components/Input";
@@ -107,7 +107,7 @@ export default function SettingsContent() {
     }
   };
 
-  const changePassword = async (e: React.FormEvent) => {
+  const setupPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 8) {
       setError("Password must be at least 8 characters.");
@@ -116,12 +116,32 @@ export default function SettingsContent() {
     setSaving(true);
     setError("");
     try {
-      await api.patchMe({ password: newPassword, current_password: password });
-      push("Password changed.");
+      await api.passwordSetup(newPassword);
+      push("Password set up successfully. You can now sign in with email and password.");
+      setNewPassword("");
+      await refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Couldn't set up password.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await api.passwordUpdate(password, newPassword);
+      push("Password updated.");
       setPassword("");
       setNewPassword("");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't change password.");
+      setError(err instanceof ApiError ? err.message : "Couldn't update password.");
     } finally {
       setSaving(false);
     }
@@ -187,6 +207,9 @@ export default function SettingsContent() {
             {me.email_verified && (
               <span className="mr-chip px-2 py-0.5 text-xs" style={{ background: "var(--mr-gold)", color: "#24102e" }}>Verified</span>
             )}
+            {!me.email_verified && me.email_verification_required && (
+              <span className="mr-chip px-2 py-0.5 text-xs" style={{ background: "var(--mr-plum)", color: "#fff" }}>Verification required</span>
+            )}
           </div>
           <div className="flex items-center gap-3 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
             <Key size={18} weight="regular" aria-hidden="true" />
@@ -211,17 +234,49 @@ export default function SettingsContent() {
           <h2 className="font-display text-xl font-bold">Security</h2>
         </div>
 
-        <form onSubmit={changePassword} className="space-y-3">
-          <h3 className="text-sm font-semibold">Change Password</h3>
-          <Input label="Current Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
-          <Input label="New Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
-          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>At least 8 characters with letters and numbers.</p>
-          <div className="pt-2 border-t">
-            <Button type="submit" disabled={saving} className="w-full" variant="ghost">
-              {saving ? "Changing…" : "Update Password"}
-            </Button>
-          </div>
-        </form>
+        {/* Password Management */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">
+            {me.has_password ? (
+              <>
+                <Lock size={16} weight="regular" aria-hidden="true" className="inline" />
+                Update Password
+              </>
+            ) : (
+              <>
+                <LockOpen size={16} weight="regular" aria-hidden="true" className="inline" />
+                Set Up Password
+              </>
+            )}
+          </h3>
+          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
+            {me.has_password
+              ? "Change your password. You'll need to enter your current password."
+              : "Create a password for your account. This lets you sign in with email and password in addition to Google."}
+          </p>
+          {me.has_password ? (
+            <form onSubmit={updatePassword} className="space-y-3">
+              <Input label="Current Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+              <Input label="New Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
+              <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>At least 8 characters with letters and numbers.</p>
+              <div className="pt-2 border-t">
+                <Button type="submit" disabled={saving} className="w-full" variant="ghost">
+                  {saving ? "Updating…" : "Update Password"}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={setupPassword} className="space-y-3">
+              <Input label="New Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
+              <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>At least 8 characters with letters and numbers.</p>
+              <div className="pt-2 border-t">
+                <Button type="submit" disabled={saving} className="w-full" variant="ghost">
+                  {saving ? "Setting up…" : "Set Up Password"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
 
         <div className="pt-2 border-t">
           <Button variant="ghost" onClick={async () => { await signOut(); router.push("/home"); }} className="w-full">

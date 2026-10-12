@@ -83,6 +83,10 @@ export async function req<T>(path: string, init?: RequestInit, isRetry = false):
     } catch {
       /* keep generic */
     }
+    // Dispatch event for email verification required
+    if (typeof window !== "undefined" && res.status === 403 && code === "email_not_verified") {
+      window.dispatchEvent(new CustomEvent("mr-email-verification-required", { detail: { code, message } }));
+    }
     throw new ApiError(res.status, code, message);
   }
   if (res.status === 204) return undefined as T;
@@ -144,6 +148,28 @@ export const api = {
     req<{ ok: boolean }>(`/api/v1/me/preferences`, { method: "PATCH", body: JSON.stringify(body) }),
   verifyAge: (dob: string) =>
     req<{ ok: boolean; age_verified: boolean }>(`/api/v1/me/age-verification`, { method: "POST", body: JSON.stringify({ dob }) }),
+  passwordSetup: (password: string) =>
+    req<import("./types").Me>(`/api/v1/me/password/setup`, { method: "POST", body: JSON.stringify({ password }) }),
+  passwordUpdate: (current_password: string, password: string) =>
+    req<import("./types").Me>(`/api/v1/me/password/update`, { method: "POST", body: JSON.stringify({ current_password, password }) }),
+  verifyEmailRequest: () =>
+    req<{ ok: boolean; dev_code?: string }>(`/api/v1/auth/verify/email/request`, { method: "POST", body: "{}" }),
+  verifyEmailConfirm: (code: string) =>
+    req<{ ok: boolean }>(`/api/v1/auth/verify/email/confirm`, { method: "POST", body: JSON.stringify({ code }) }),
+  forgotPasswordRequest: (email: string) =>
+    req<{ ok: boolean; dev_code?: string }>(`/api/v1/auth/password/forgot/request`, { method: "POST", body: JSON.stringify({ email }) }),
+  forgotPasswordVerify: (email: string, code: string) =>
+    req<{ ok: boolean; reset_token: string }>(`/api/v1/auth/password/forgot/verify`, { method: "POST", body: JSON.stringify({ email, code }) }),
+  forgotPasswordReset: (reset_token: string, password: string) =>
+    req<{ ok: boolean }>(`/api/v1/auth/password/forgot/reset`, { method: "POST", body: JSON.stringify({ reset_token, password }) }),
+  newsletterSubscribe: (email: string, source?: string) =>
+    req<{ ok: boolean; dev_confirm_url?: string }>(`/api/v1/newsletter/subscribe`, { method: "POST", body: JSON.stringify({ email, source }) }),
+  newsletterConfirm: (token: string) =>
+    req<{ ok: boolean; email: string }>(`/api/v1/newsletter/confirm?token=${encodeURIComponent(token)}`),
+  newsletterUnsubscribe: (token: string) =>
+    req<{ ok: boolean }>(`/api/v1/newsletter/unsubscribe?token=${encodeURIComponent(token)}`),
+  newsletterCount: () =>
+    req<{ confirmed: number }>(`/api/v1/newsletter/count`),
   nightCreate: (body: { name: string; scheduled_at?: string | null; blind_voting?: boolean; prefs?: Record<string, unknown> }) =>
     req<NightCreated>(
       `/api/v1/movie-nights`, { method: "POST", body: JSON.stringify(body) }
