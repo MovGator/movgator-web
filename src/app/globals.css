@@ -703,6 +703,9 @@ input::placeholder, textarea::placeholder {
   min-width: 0;
   white-space: nowrap;
 }
+.mkt-nav-brand .brand-mark {
+  display: block;
+}
 .mkt-nav-brand .brand-mark img {
   width: 100%;
   height: auto;
@@ -791,11 +794,11 @@ input::placeholder, textarea::placeholder {
     padding: 6px 8px;
   }
   .mkt-nav-brand .brand-mark img {
-    width: clamp(68px, 15vw, 96px);
+    width: clamp(86px, 22vw, 112px);
   }
   .mkt-nav-brand {
-    flex-basis: clamp(68px, 15vw, 96px);
-    width: clamp(68px, 15vw, 96px);
+    flex-basis: clamp(86px, 22vw, 112px);
+    width: clamp(86px, 22vw, 112px);
   }
   .mkt-nav-actions {
     gap: 0.25rem;
@@ -829,11 +832,11 @@ input::placeholder, textarea::placeholder {
     padding: 5px 6px;
   }
   .mkt-nav-brand .brand-mark img {
-    width: clamp(52px, 16vw, 64px);
+    width: clamp(78px, 23vw, 92px);
   }
   .mkt-nav-brand {
-    flex-basis: clamp(52px, 16vw, 64px);
-    width: clamp(52px, 16vw, 64px);
+    flex-basis: clamp(78px, 23vw, 92px);
+    width: clamp(78px, 23vw, 92px);
   }
   .mkt-nav-actions {
     gap: 0.25rem;
