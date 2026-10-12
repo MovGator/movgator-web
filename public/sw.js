@@ -1,6 +1,6 @@
 /* MovGator service worker: app-shell + static caching only.
    NEVER caches /api/*, cookies, or auth responses. Versioned cache. */
-const VERSION = "mg-v1";
+const VERSION = "mg-v2";
 const SHELL = ["/offline", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -30,8 +30,13 @@ self.addEventListener("fetch", (event) => {
         (hit) =>
           hit ||
           fetch(request).then((res) => {
-            const copy = res.clone();
-            caches.open(VERSION).then((c) => c.put(request, copy));
+            // Never cache failures: a 404/500 body stored under a .css/.js
+            // URL is served back forever (cache-first) and the page renders
+            // permanently unstyled. Only persist successful responses.
+            if (res.ok) {
+              const copy = res.clone();
+              caches.open(VERSION).then((c) => c.put(request, copy));
+            }
             return res;
           })
       )
