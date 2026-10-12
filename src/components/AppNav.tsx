@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { Avatar } from "./Avatar";
 import { Logo, LogoIcon } from "./Logo";
+import { Tooltip } from "./Tooltip";
 
 interface NavItem {
   href: string;
@@ -169,20 +170,22 @@ export function AppSidebar() {
             <LogoIcon size={34} />
           </span>
         </Link>
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!collapsed}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="app-sidebar-toggle"
-        >
-          {collapsed ? (
-            <CaretDoubleRight size={20} weight="regular" aria-hidden="true" />
-          ) : (
-            <CaretDoubleLeft size={20} weight="regular" aria-hidden="true" />
-          )}
-        </button>
+        <Tooltip content={collapsed ? "Expand sidebar" : "Collapse sidebar"} position="right">
+          <button
+            type="button"
+            id="sidebar-toggle"
+            onClick={toggle}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            className="app-sidebar-toggle"
+          >
+            {collapsed ? (
+              <CaretDoubleRight size={20} weight="regular" aria-hidden="true" />
+            ) : (
+              <CaretDoubleLeft size={20} weight="regular" aria-hidden="true" />
+            )}
+          </button>
+        </Tooltip>
       </div>
 
       {SECTIONS.map((s) => (

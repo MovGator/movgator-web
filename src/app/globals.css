@@ -41,11 +41,17 @@
 
 html {
   scroll-behavior: smooth;
+  background: #f7f6f8; /* explicit fallback for lintapple */
+  background: var(--mr-bg);
+  font-family: "Inter", system-ui, sans-serif; /* explicit fallback for lintapple */
+  font-family: var(--mr-font-body);
+  -webkit-font-smoothing: antialiased;
 }
 body {
+  background: #f7f6f8; /* explicit fallback for lintapple */
   background: var(--mr-bg);
   color: var(--mr-ink);
-  font-family: var(--mr-font-body);
+  font-family: inherit;
   -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3, .font-display {
@@ -69,6 +75,11 @@ h1, h2, h3, .font-display {
   color: #fff;
   border-radius: 999px;
   font-weight: 600;
+  min-height: 44px;
+  min-width: 44px;
+  font-size: 16px;
+  font-family: "Inter", system-ui, sans-serif;
+  padding-inline: 20px;
 }
 [data-theme="dark"] .mr-btn-primary {
   background: var(--mr-gold);
@@ -79,10 +90,21 @@ h1, h2, h3, .font-display {
   color: #24102e;
   border-radius: 999px;
   font-weight: 700;
+  min-height: 44px;
+  min-width: 44px;
+  font-size: 16px;
+  font-family: "Inter", system-ui, sans-serif;
+  padding-inline: 20px;
 }
 .mr-chip {
   border: 1px solid var(--mr-line);
   border-radius: 999px;
+  min-height: 44px;
+  min-width: 44px;
+  font-size: 14px;
+  font-family: "Inter", system-ui, sans-serif;
+  padding-inline: 16px;
+  font-weight: 600;
 }
 
 /* Poster rails: horizontal scroll-snap, restrained */
@@ -144,10 +166,30 @@ h1, h2, h3, .font-display {
   animation: slideUp 0.3s ease-out;
 }
 
-/* Touch targets */
-button, a {
-  min-height: 24px;
+/* Touch targets — 44px minimum per Apple HIG / lintapple */
+button, [role="button"], a {
+  min-height: 44px;
+  min-width: 44px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 16px; /* lintapple-approved size */
+  line-height: 1.25;
 }
+button.small, [role="button"].small, a.small {
+  min-height: 36px;
+  min-width: 36px;
+  font-size: 14px;
+}
+
+/* Icon-only buttons (appbar, sidebar toggle) - ensure 44x44 */
+.appbar-btn,
+.app-sidebar-toggle {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 nav a, nav button {
   min-height: 44px;
   min-width: 44px;
