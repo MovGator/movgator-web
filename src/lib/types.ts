@@ -17,6 +17,7 @@ export interface Title {
   backdrop_url?: string | null;
   trailer_key?: string | null;
   tmdb_rating?: number | null;
+  certification?: string | null;
   popularity: number;
   hidden_gem: boolean;
   provenance: string;
