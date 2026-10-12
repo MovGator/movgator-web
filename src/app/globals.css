@@ -708,7 +708,7 @@ input::placeholder, textarea::placeholder {
   height: auto;
 }
 .mkt-nav-links {
-  display: flex;
+  display: none;
   order: 0;
   flex: 1 1 auto;
   min-width: 0;
@@ -777,6 +777,7 @@ input::placeholder, textarea::placeholder {
 }
 @media (min-width: 1280px) {
   .mkt-nav-links {
+    display: flex;
     justify-content: center;
     overflow: visible;
   }

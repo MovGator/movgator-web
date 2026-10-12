@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Envelope, Globe, UsersThree } from "@phosphor-icons/react";
+import { useState } from "react";
+import { ArrowRight, Envelope, Globe, List, UsersThree, X } from "@phosphor-icons/react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { NewsletterForm } from "./NewsletterForm";
@@ -25,6 +26,7 @@ const LINKS = [
 export function MarketingNav({ locale, dict }: { locale: Locale; dict: T }) {
   const path = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const switchLocale = (next: Locale) => {
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; SameSite=Lax`;
     router.refresh();
@@ -59,8 +61,55 @@ export function MarketingNav({ locale, dict }: { locale: Locale; dict: T }) {
           >
             {tr(dict, "nav.getStarted")}
           </Link>
+          <button
+            type="button"
+            className="mr-chip inline-flex items-center justify-center p-2 xl:hidden"
+            aria-expanded={open}
+            aria-controls="marketing-menu"
+            aria-label={open ? tr(dict, "nav.closeMenu") : tr(dict, "nav.openMenu")}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? (
+              <X size={20} weight="regular" aria-hidden="true" />
+            ) : (
+              <List size={20} weight="regular" aria-hidden="true" />
+            )}
+          </button>
         </div>
       </header>
+      {open && (
+        <nav
+          id="marketing-menu"
+          aria-label={tr(dict, "nav.sectionsAria")}
+          className="mkt-menu-panel xl:hidden"
+        >
+          <ul className="grid gap-1">
+            {LINKS.map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={path === l.href ? "page" : undefined}
+                  className="block rounded-2xl px-4 py-3 text-base font-medium"
+                  style={path === l.href ? { background: "var(--mr-surface-2)", fontWeight: 700 } : undefined}
+                >
+                  {tr(dict, l.labelKey)}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                href="/get-started"
+                onClick={() => setOpen(false)}
+                className="mr-btn-gold mt-2 flex items-center justify-center gap-2 px-4 py-3 text-base"
+              >
+                {tr(dict, "nav.getStartedLong")}
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }
