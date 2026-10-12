@@ -12,6 +12,8 @@ import { Dialog } from "@/components/Dialog";
 import { AppBar } from "@/components/AppBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/components/Toast";
+import { useLocale } from "@/lib/i18n/use-locale";
+import { LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/locales";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SettingsContent() {
@@ -27,12 +29,14 @@ export default function SettingsContent() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  type SettingsTab = "account" | "security" | "filters" | "theme" | "privacy" | "support";
+  type SettingsTab = "account" | "security" | "filters" | "theme" | "language" | "privacy" | "support";
+  const { locale: uiLocale, t: uit, setLocale: setUiLocale } = useLocale();
   const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
     { id: "account", label: "Account", icon: <User size={16} weight="regular" aria-hidden="true" /> },
     { id: "security", label: "Security", icon: <Shield size={16} weight="regular" aria-hidden="true" /> },
     { id: "filters", label: "Filters", icon: <Eye size={16} weight="regular" aria-hidden="true" /> },
     { id: "theme", label: "Theme", icon: <Palette size={16} weight="regular" aria-hidden="true" /> },
+    { id: "language", label: uit("settings.languageTitle"), icon: <Globe size={16} weight="regular" aria-hidden="true" /> },
     { id: "privacy", label: "Privacy", icon: <File size={16} weight="regular" aria-hidden="true" /> },
     { id: "support", label: "Support", icon: <Info size={16} weight="regular" aria-hidden="true" /> },
   ];
@@ -358,6 +362,43 @@ export default function SettingsContent() {
         </div>
         <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
           Your preference is saved locally and applied automatically on each visit.
+        </p>
+      </section>
+
+      )}
+      {/* Language Section */}
+      {activeTab === "language" && (
+      <section id="language" role="tabpanel" aria-labelledby="settings-tab-language" className="mt-6 mr-card p-5 space-y-4" suppressHydrationWarning>
+        <div className="flex items-center gap-3">
+          <div className="mr-chip inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "var(--mr-plum)", color: "#fff" }}>
+            <Globe size={20} weight="regular" aria-hidden="true" />
+          </div>
+          <h2 className="font-display text-xl font-bold">{uit("settings.languageTitle")}</h2>
+        </div>
+
+        <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+          {uit("settings.languageDesc")}
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {LOCALES.map((l) => {
+            const active = uiLocale === l;
+            return (
+              <button
+                key={l}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setUiLocale(l as Locale)}
+                className="mr-chip flex items-center justify-between px-4 py-3 text-sm font-semibold"
+                style={active ? { background: "var(--mr-plum)", color: "#fff", borderColor: "transparent" } : undefined}
+              >
+                <span>{LOCALE_NAMES[l as Locale]}</span>
+                {active && <span aria-hidden="true">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
+          {uit("lang.language")}: {LOCALE_NAMES[uiLocale as Locale]}
         </p>
       </section>
 

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { api, type WatchProviders } from "@/lib/api";
+import { regionFromAcceptLanguage } from "@/lib/region";
 import type { Title } from "@/lib/types";
 import { TitleActions } from "./actions";
 import { PosterArt } from "@/components/PosterArt";
@@ -53,11 +55,13 @@ export default async function TitlePage({ params }: { params: Promise<{ id: stri
   } catch {
     related = [];
   }
-  // Legal viewing options for the viewer's region (US default). Any
-  // failure hides the section — never an error state, never stale data.
+  // Legal viewing options for the viewer's region, detected from their
+  // locale (US fallback). Any failure hides the section — never an error
+  // state, never stale data.
   let watch: WatchProviders | null = null;
   try {
-    watch = await api.watchProviders(id);
+    const region = regionFromAcceptLanguage((await headers()).get("accept-language"));
+    watch = await api.watchProviders(id, region);
   } catch {
     watch = null;
   }

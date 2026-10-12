@@ -13,6 +13,7 @@ import { AppBar } from "@/components/AppBar";
 import { InstallCard } from "@/components/InstallPrompt";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/components/Toast";
+import { useLocale } from "@/lib/i18n/use-locale";
 import type { Title } from "@/lib/types";
 
 const PALETTES = ["violet", "mint", "peach", "sky", "rose", "sand", "mono", "auto"] as const;
@@ -27,6 +28,7 @@ function ForgotPasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const { push } = useToast();
+  const { t } = useLocale();
   const resetTokenRef = useRef<string | null>(null);
 
   const handleRequest = async (e: React.FormEvent) => {
@@ -35,10 +37,10 @@ function ForgotPasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
     setError("");
     try {
       await api.forgotPasswordRequest(email);
-      push("If that email exists, a code has been sent.");
+      push(t("forgot.sent"));
       setStep("verify");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't send code.");
+      setError(err instanceof ApiError ? err.message : t("forgot.sendFailed"));
     } finally {
       setBusy(false);
     }
@@ -53,7 +55,7 @@ function ForgotPasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
       resetTokenRef.current = res.reset_token;
       setStep("reset");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Invalid or expired code.");
+      setError(err instanceof ApiError ? err.message : t("forgot.invalidCode"));
     } finally {
       setBusy(false);
     }
@@ -62,11 +64,11 @@ function ForgotPasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("forgot.weak"));
       return;
     }
     if (!resetTokenRef.current) {
-      setError("Session expired. Please start over.");
+      setError(t("forgot.expired"));
       setStep("request");
       return;
     }
@@ -74,10 +76,10 @@ function ForgotPasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
     setError("");
     try {
       await api.forgotPasswordReset(resetTokenRef.current, password);
-      push("Password reset. You can now sign in.");
+      push(t("forgot.done"));
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't reset password.");
+      setError(err instanceof ApiError ? err.message : t("forgot.resetFailed"));
     } finally {
       setBusy(false);
     }
@@ -86,42 +88,42 @@ function ForgotPasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
   if (!open) return null;
 
   return (
-    <Dialog open={open} onClose={onClose} title="Reset your password" maxWidth="max-w-md">
+    <Dialog open={open} onClose={onClose} title={t("forgot.title")} maxWidth="max-w-md">
       {step === "request" && (
         <form onSubmit={handleRequest} className="space-y-3">
           <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
-            Enter your email and we&rsquo;ll send a 6-digit code.
+            {t("forgot.request")}
           </p>
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          <Input label={t("forgot.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
           <div className="flex gap-2 pt-2">
-            <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={busy} className="flex-1">{busy ? "Sending…" : "Send code"}</Button>
+            <Button variant="ghost" type="button" onClick={onClose}>{t("forgot.cancel")}</Button>
+            <Button type="submit" disabled={busy} className="flex-1">{busy ? t("forgot.sending") : t("forgot.send")}</Button>
           </div>
         </form>
       )}
       {step === "verify" && (
         <form onSubmit={handleVerify} className="space-y-3">
           <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
-            Enter the 6-digit code sent to <strong>{email}</strong>.
+            {t("forgot.enterCode", { email })}
           </p>
-          <Input label="Code" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} pattern="[0-9]*" inputMode="numeric" required autoComplete="one-time-code" />
+          <Input label={t("forgot.code")} value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} pattern="[0-9]*" inputMode="numeric" required autoComplete="one-time-code" />
           {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
           <div className="flex gap-2 pt-2">
-            <Button variant="ghost" type="button" onClick={() => { setStep("request"); setError(""); }}>Back</Button>
-            <Button type="submit" disabled={busy} className="flex-1">{busy ? "Verifying…" : "Verify code"}</Button>
+            <Button variant="ghost" type="button" onClick={() => { setStep("request"); setError(""); }}>{t("forgot.back")}</Button>
+            <Button type="submit" disabled={busy} className="flex-1">{busy ? t("forgot.verifying") : t("forgot.verify")}</Button>
           </div>
         </form>
       )}
       {step === "reset" && (
         <form onSubmit={handleReset} className="space-y-3">
-          <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>Set your new password.</p>
-          <Input label="New Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
-          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>At least 8 characters with letters and numbers.</p>
+          <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>{t("forgot.newPw")}</p>
+          <Input label={t("forgot.newPwLabel")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
+          <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>{t("auth.pwHint")}</p>
           {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
           <div className="flex gap-2 pt-2">
-            <Button variant="ghost" type="button" onClick={() => { setStep("verify"); setError(""); }}>Back</Button>
-            <Button type="submit" disabled={busy} className="flex-1">{busy ? "Resetting…" : "Reset password"}</Button>
+            <Button variant="ghost" type="button" onClick={() => { setStep("verify"); setError(""); }}>{t("forgot.back")}</Button>
+            <Button type="submit" disabled={busy} className="flex-1">{busy ? t("forgot.resetting") : t("forgot.reset")}</Button>
           </div>
         </form>
       )}
@@ -138,6 +140,7 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
   const router = useRouter();
+  const { t } = useLocale();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,7 +152,7 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
       onDone();
       router.push(next);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Sign-in failed. Try again.");
+      setError(err instanceof ApiError ? err.message : t("auth.failed"));
     } finally {
       setBusy(false);
     }
@@ -162,22 +165,22 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
     } catch (err) {
       setError(
         err instanceof ApiError && err.code === "oauth_not_configured"
-          ? "Google sign-in isn't configured on this server yet — use email instead. (Admin: set GOOGLE_CLIENT_ID/SECRET.)"
-          : "Google sign-in failed. Try email instead."
+          ? t("auth.oauthMissing")
+          : t("auth.oauthFailed")
       );
     }
   };
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-md" suppressHydrationWarning>
       <AppBar title="Profile" showBack={false} brand />
       <div className="mr-card p-6">
         <Logo height={34} />
-        <h1 className="font-display mt-3 text-2xl font-bold">Your MovGator account</h1>
+        <h1 className="font-display mt-3 text-2xl font-bold">{t("auth.title")}</h1>
         <p className="mt-1 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
-          Watchlist, ratings, onboarding taste and Movie Nights sync here. Browsing stays open to everyone.
+          {t("auth.sub")}
         </p>
-        <div className="mt-4 flex gap-2" role="tablist" aria-label="Sign in or create account">
+        <div className="mt-4 flex gap-2" role="tablist" aria-label={t("auth.tabsAria")}>
           {(["login", "register"] as const).map((m) => (
             <button
               key={m}
@@ -187,15 +190,15 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
               className="mr-chip px-4 py-2 text-sm font-semibold"
               style={mode === m ? { background: "var(--mr-plum)", color: "#fff" } : undefined}
             >
-              {m === "login" ? "Sign in" : "Create account"}
+              {m === "login" ? t("auth.signIn") : t("auth.createAccount")}
             </button>
           ))}
         </div>
         <form onSubmit={submit} className="mt-4 flex flex-col gap-3">
-          {mode === "register" && <Input label="Display name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="nickname" />}
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          {mode === "register" && <Input label={t("auth.displayName")} value={name} onChange={(e) => setName(e.target.value)} autoComplete="nickname" />}
+          <Input label={t("auth.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           <Input
-            label="Password"
+            label={t("auth.password")}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -205,13 +208,13 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
           />
           {mode === "register" && (
             <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
-              At least 8 characters with letters and numbers.
+              {t("auth.pwHint")}
             </p>
           )}
           {mode === "login" && (
             <div className="text-right">
               <Button variant="ghost" type="button" onClick={() => setForgotOpen(true)} className="text-xs px-3 py-1">
-                Forgot password?
+                {t("auth.forgot")}
               </Button>
             </div>
           )}
@@ -221,12 +224,12 @@ function SignIn({ next, onDone }: { next: string; onDone: () => void }) {
             </p>
           )}
           <Button type="submit" disabled={busy}>
-            {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
+            {busy ? t("auth.pleaseWait") : mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
           </Button>
         </form>
         <div className="mt-3">
           <Button variant="ghost" onClick={google} className="w-full">
-            Continue with Google
+            {t("auth.google")}
           </Button>
         </div>
       </div>

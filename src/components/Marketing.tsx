@@ -1,55 +1,72 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, List, X, Envelope, UsersThree, Globe } from "@phosphor-icons/react";
+import { ArrowRight, Envelope, Globe, List, UsersThree, X } from "@phosphor-icons/react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { NewsletterForm } from "./NewsletterForm";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { LOCALE_COOKIE, type Locale } from "@/lib/i18n/locales";
+import { translate } from "@/lib/i18n/dictionaries";
+
+type T = Record<string, string>;
+const tr = (dict: T, key: string, vars?: Record<string, string>) =>
+  translate(dict, key, vars);
 
 const LINKS = [
-  { href: "/features", label: "Features" },
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/use-cases", label: "Use cases" },
-  { href: "/about", label: "About" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/contact", label: "Contact" },
+  { href: "/features", labelKey: "nav.features" },
+  { href: "/how-it-works", labelKey: "nav.howItWorks" },
+  { href: "/use-cases", labelKey: "nav.useCases" },
+  { href: "/about", labelKey: "nav.about" },
+  { href: "/faq", labelKey: "nav.faq" },
+  { href: "/contact", labelKey: "nav.contact" },
 ];
 
-export function MarketingNav() {
+export function MarketingNav({ locale, dict }: { locale: Locale; dict: T }) {
   const path = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const switchLocale = (next: Locale) => {
+    document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; SameSite=Lax`;
+    router.refresh();
+  };
   return (
     <div className="mkt-navwrap">
       <header className="mkt-nav">
-        <Link href="/" aria-label="MovGator home">
+        <Link href="/" aria-label={tr(dict, "nav.homeAria")}>
           <Logo height={26} />
         </Link>
-        <nav aria-label="Marketing" className="mkt-nav-links">
+        <nav aria-label={tr(dict, "nav.mainAria")} className="mkt-nav-links">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               aria-current={path === l.href ? "page" : undefined}
             >
-              {l.label}
+              {tr(dict, l.labelKey)}
             </Link>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          <LanguageSwitcher
+            locale={locale}
+            label={tr(dict, "lang.language")}
+            onSwitch={switchLocale}
+          />
           <ThemeToggle />
           <Link
             href="/get-started"
             className="mr-btn-gold hidden px-4 py-2 text-sm sm:inline-block"
           >
-            Get started
+            {tr(dict, "nav.getStarted")}
           </Link>
           <button
             type="button"
             className="mr-chip inline-flex items-center justify-center p-2 lg:hidden"
             aria-expanded={open}
             aria-controls="marketing-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? tr(dict, "nav.closeMenu") : tr(dict, "nav.openMenu")}
             onClick={() => setOpen((o) => !o)}
           >
             {open ? (
@@ -61,7 +78,7 @@ export function MarketingNav() {
         </div>
       </header>
       {open && (
-        <nav id="marketing-menu" aria-label="Marketing sections" className="mkt-menu-panel lg:hidden">
+        <nav id="marketing-menu" aria-label={tr(dict, "nav.sectionsAria")} className="mkt-menu-panel lg:hidden">
           <ul className="grid gap-1">
             {LINKS.map((l) => (
               <li key={l.href}>
@@ -72,7 +89,7 @@ export function MarketingNav() {
                   className="block rounded-2xl px-4 py-3 text-base font-medium"
                   style={path === l.href ? { background: "var(--mr-surface-2)", fontWeight: 700 } : undefined}
                 >
-                  {l.label}
+                  {tr(dict, l.labelKey)}
                 </Link>
               </li>
             ))}
@@ -82,7 +99,7 @@ export function MarketingNav() {
                 onClick={() => setOpen(false)}
                 className="mr-btn-gold mt-2 flex items-center justify-center gap-2 px-4 py-3 text-base"
               >
-                Get started — free to browse
+                {tr(dict, "nav.getStartedLong")}
                 <ArrowRight size={18} weight="bold" aria-hidden="true" />
               </Link>
             </li>
@@ -93,27 +110,27 @@ export function MarketingNav() {
   );
 }
 
-export function MarketingFooter() {
+export function MarketingFooter({ dict }: { dict: T }) {
   return (
     <footer className="mt-16">
       <div className="mx-auto max-w-6xl px-4">
         <div className="cine-panel text-center" style={{ borderRadius: 28 }}>
           <h2 className="font-display mx-auto max-w-xl text-3xl font-extrabold text-[#f7f6f8] md:text-4xl">
-            Your next favourite film is one roll away.
+            {tr(dict, "footer.ctaTitle")}
           </h2>
           <p className="cine-caption mx-auto mt-2 max-w-md">
-            Browse free, roll the dice, and vote with friends — no account needed to start.
+            {tr(dict, "footer.ctaSub")}
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Link href="/home" className="mkt-cta">
-              Enter the app
+              {tr(dict, "footer.enterApp")}
             </Link>
             <Link
               href="/get-started"
               className="inline-flex min-h-[56px] items-center rounded-full border px-6 font-semibold text-[#f7f6f8]"
               style={{ borderColor: "rgb(247 246 248 / 0.35)" }}
             >
-              Get started guide
+              {tr(dict, "footer.guide")}
             </Link>
           </div>
         </div>
@@ -123,72 +140,73 @@ export function MarketingFooter() {
           <div className="min-w-0 sm:col-span-2 lg:col-span-3">
             <Logo />
             <p className="font-display mt-5 text-xl font-extrabold leading-snug">
-              Find what to watch <em className="font-display italic">tonight.</em>
+              {tr(dict, "footer.tagA")}
+              <em className="font-display italic">{tr(dict, "footer.tagB")}</em>
             </p>
             <p className="mt-3 max-w-xs leading-relaxed">
-              A quiet, spoiler-safe place to discover films and anime — alone or together.
+              {tr(dict, "footer.blurb")}
             </p>
             <ul className="mt-6 grid gap-3">
               <li>
                 <Link href="/contact" className="mkt-footer-row">
                   <Envelope size={18} weight="regular" aria-hidden="true" />
-                  <span>Contact support</span>
+                  <span>{tr(dict, "footer.contactSupport")}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/use-cases" className="mkt-footer-row">
                   <UsersThree size={18} weight="regular" aria-hidden="true" />
-                  <span>For friends &amp; families</span>
+                  <span>{tr(dict, "footer.forFriends")}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="mkt-footer-row">
                   <Globe size={18} weight="regular" aria-hidden="true" />
-                  <span>Watching worldwide</span>
+                  <span>{tr(dict, "footer.worldwide")}</span>
                 </Link>
               </li>
             </ul>
           </div>
-          <nav aria-label="Product" className="lg:col-span-2">
-            <h2 className="mkt-footer-h">Product</h2>
+          <nav aria-label={tr(dict, "footer.product")} className="lg:col-span-2">
+            <h2 className="mkt-footer-h">{tr(dict, "footer.product")}</h2>
             <ul className="mt-4 grid gap-1">
-              <li><Link className="mkt-footer-link" href="/features">Features</Link></li>
-              <li><Link className="mkt-footer-link" href="/how-it-works">How it works</Link></li>
-              <li><Link className="mkt-footer-link" href="/use-cases">Use cases</Link></li>
-              <li><Link className="mkt-footer-link" href="/get-started">Get started</Link></li>
+              <li><Link className="mkt-footer-link" href="/features">{tr(dict, "nav.features")}</Link></li>
+              <li><Link className="mkt-footer-link" href="/how-it-works">{tr(dict, "nav.howItWorks")}</Link></li>
+              <li><Link className="mkt-footer-link" href="/use-cases">{tr(dict, "nav.useCases")}</Link></li>
+              <li><Link className="mkt-footer-link" href="/get-started">{tr(dict, "nav.getStarted")}</Link></li>
             </ul>
           </nav>
-          <nav aria-label="Company" className="lg:col-span-2">
-            <h2 className="mkt-footer-h">Company</h2>
+          <nav aria-label={tr(dict, "footer.company")} className="lg:col-span-2">
+            <h2 className="mkt-footer-h">{tr(dict, "footer.company")}</h2>
             <ul className="mt-4 grid gap-1">
-              <li><Link className="mkt-footer-link" href="/about">About</Link></li>
-              <li><Link className="mkt-footer-link" href="/faq">FAQ</Link></li>
-              <li><Link className="mkt-footer-link" href="/contact">Contact</Link></li>
+              <li><Link className="mkt-footer-link" href="/about">{tr(dict, "nav.about")}</Link></li>
+              <li><Link className="mkt-footer-link" href="/faq">{tr(dict, "nav.faq")}</Link></li>
+              <li><Link className="mkt-footer-link" href="/contact">{tr(dict, "nav.contact")}</Link></li>
             </ul>
           </nav>
-          <nav aria-label="Legal" className="lg:col-span-2">
-            <h2 className="mkt-footer-h">Legal</h2>
+          <nav aria-label={tr(dict, "footer.legal")} className="lg:col-span-2">
+            <h2 className="mkt-footer-h">{tr(dict, "footer.legal")}</h2>
             <ul className="mt-4 grid gap-1">
-              <li><Link className="mkt-footer-link" href="/privacy">Privacy</Link></li>
-              <li><Link className="mkt-footer-link" href="/terms">Terms</Link></li>
+              <li><Link className="mkt-footer-link" href="/privacy">{tr(dict, "footer.privacy")}</Link></li>
+              <li><Link className="mkt-footer-link" href="/terms">{tr(dict, "footer.terms")}</Link></li>
             </ul>
           </nav>
           <div className="min-w-0 sm:col-span-2 lg:col-span-3">
-            <h2 className="mkt-footer-h">Newsletter</h2>
+            <h2 className="mkt-footer-h">{tr(dict, "footer.newsletter")}</h2>
             <p className="mt-4 leading-relaxed">
-              New releases, hidden gems, and MovGator updates. No spam, unsubscribe anytime.
+              {tr(dict, "footer.nlDesc")}
             </p>
             <div className="mt-4">
-              <NewsletterForm variant="footer" showDescription={false} />
+              <NewsletterForm variant="footer" showDescription={false} t={dict} />
             </div>
             <p className="mt-3 text-xs leading-relaxed">
-              Double opt-in — confirm from your inbox. Unsubscribe anytime.
+              {tr(dict, "footer.nlMicrocopy")}
             </p>
           </div>
         </div>
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 pb-8 text-xs sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 MovGator. All rights reserved.</p>
-          <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+          <p>{tr(dict, "footer.rights")}</p>
+          <p>{tr(dict, "footer.tmdbNotice")}</p>
         </div>
       </div>
     </footer>

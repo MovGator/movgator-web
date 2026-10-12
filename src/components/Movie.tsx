@@ -60,7 +60,7 @@ export function MovieCard({ title }: { title: Title }) {
   );
 }
 
-export function PosterRail({ heading, items, href }: { heading: string; items: Title[]; href?: string }) {
+export function PosterRail({ heading, items, href, seeAllLabel }: { heading: string; items: Title[]; href?: string; seeAllLabel?: string }) {
   if (!items.length) return null;
   return (
     <section aria-label={heading} className="mt-8">
@@ -68,7 +68,7 @@ export function PosterRail({ heading, items, href }: { heading: string; items: T
         <h2 className="font-display text-xl font-bold">{heading}</h2>
         {href && (
           <Link href={href} className="text-sm font-semibold underline">
-            See all
+            {seeAllLabel ?? "See all"}
           </Link>
         )}
       </div>

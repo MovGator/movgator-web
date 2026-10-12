@@ -926,6 +926,21 @@ input::placeholder, textarea::placeholder {
     width: 100%;
   }
 }
+/* Right-to-left locales (Arabic): Arabic script must not be letter-spaced
+   (spacing disconnects joined letters), and the attached CTA arrow flips. */
+[dir="rtl"] .mkt-eyebrow,
+[dir="rtl"] .mkt-display,
+[dir="rtl"] .mkt-footer-h,
+[dir="rtl"] .nl-eyebrow,
+[dir="rtl"] .nl-title,
+[dir="rtl"] .font-display {
+  letter-spacing: 0;
+}
+[dir="rtl"] .mkt-cta-arrow {
+  margin-left: 0;
+  margin-right: -14px;
+}
+
 /* Footer newsletter: rounded pill row + circular gold arrow submit. */
 .nl-footer {
   max-width: 340px;
