@@ -111,6 +111,8 @@ export const api = {
     );
   },
   title: (id: string) => req<Title>(`/api/v1/titles/${id}`),
+  watchProviders: (id: string, region = "US") =>
+    req<WatchProviders>(`/api/v1/titles/${id}/watch-providers?region=${encodeURIComponent(region)}`),
   related: (id: string) => req<Title[]>(`/api/v1/titles/${id}/related`),
   genres: () => req<Genre[]>(`/api/v1/genres`),
   onboarding: (genre_ids: string[], include_anime: boolean, cursor = 0, limit = 18) =>
@@ -312,6 +314,19 @@ export interface NightSnapshot {
     candidate_id: string;
   }[];
   votes: Record<string, number>;
+}
+
+export interface WatchProvider {
+  name: string;
+  logo_url: string | null;
+}
+
+export interface WatchProviders {
+  region: string;
+  link: string | null;
+  flatrate: WatchProvider[];
+  rent: WatchProvider[];
+  buy: WatchProvider[];
 }
 
 export function wsUrl(nightId: string, voter: string, invite: string): string {

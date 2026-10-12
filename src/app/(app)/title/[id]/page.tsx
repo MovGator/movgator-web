@@ -1,10 +1,24 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, type WatchProviders } from "@/lib/api";
 import type { Title } from "@/lib/types";
 import { TitleActions } from "./actions";
 import { PosterArt } from "@/components/PosterArt";
 import { CertBadge, GenreChip, PosterRail } from "@/components/Movie";
 import { MatureCover } from "@/components/MatureCover";
+import type { WatchProvider } from "@/lib/api";
+
+function WatchProviderChip({ provider }: { provider: WatchProvider }) {
+  return (
+    <>
+      {provider.logo_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={provider.logo_url} alt="" aria-hidden="true" width={28} height={28} className="rounded-full" loading="lazy" />
+      ) : null}
+      <span>{provider.name}</span>
+    </>
+  );
+}
 import { BackButton } from "@/components/BackButton";
 import { AppBar } from "@/components/AppBar";
 
@@ -39,6 +53,21 @@ export default async function TitlePage({ params }: { params: Promise<{ id: stri
   } catch {
     related = [];
   }
+  // Legal viewing options for the viewer's region (US default). Any
+  // failure hides the section — never an error state, never stale data.
+  let watch: WatchProviders | null = null;
+  try {
+    watch = await api.watchProviders(id);
+  } catch {
+    watch = null;
+  }
+  const watchGroups = watch
+    ? ([
+        ["Subscription", watch.flatrate],
+        ["Rent", watch.rent],
+        ["Buy", watch.buy],
+      ] as const).filter(([, items]) => items.length > 0)
+    : [];
   return (
     <article>
       <AppBar title={t.title} backFallback="/discover" />
@@ -125,6 +154,49 @@ export default async function TitlePage({ params }: { params: Promise<{ id: stri
       <div className="[&_p]:max-w-2xl">
         <TitleActions id={t.id} title={t.title} />
       </div>
+      {watchGroups.length > 0 && watch && (
+        <section className="mt-6 max-w-2xl" aria-labelledby="watch">
+          <h2 id="watch" className="font-display text-lg font-bold">Where to watch</h2>
+          <p className="mt-1 text-sm" style={{ color: "var(--mr-ink-soft)" }}>
+            Legal streaming options in {watch.region} · data by TMDB
+          </p>
+          <div className="mt-3 grid gap-4">
+            {watchGroups.map(([label, items]) => (
+              <div key={label}>
+                <h3 className="text-sm font-semibold">{label}</h3>
+                <ul className="mt-2 flex flex-wrap gap-3">
+                  {items.map((p) => (
+                    <li key={p.name}>
+                      {watch.link ? (
+                        <Link
+                          href={watch.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`${p.name} (via TMDB)`}
+                          className="mr-chip flex items-center gap-2 py-1.5 pl-1.5 pr-3 text-sm font-medium"
+                        >
+                          <WatchProviderChip provider={p} />
+                        </Link>
+                      ) : (
+                        <span className="mr-chip flex items-center gap-2 py-1.5 pl-1.5 pr-3 text-sm font-medium">
+                          <WatchProviderChip provider={p} />
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          {watch.link && (
+            <p className="mt-3 text-sm">
+              <Link href={watch.link} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                View all options on TMDB
+              </Link>
+            </p>
+          )}
+        </section>
+      )}
       {related.length > 0 && (
         <PosterRail heading={`More like this${t.genres[0] ? ` (${t.genres[0]})` : ""}`} items={related} />
       )}
