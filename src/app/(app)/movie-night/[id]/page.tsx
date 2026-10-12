@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { AppBar } from "@/components/AppBar";
 import type { Title } from "@/lib/types";
 import { Button } from "@/components/Button";
-import { EmptyState } from "@/components/Movie";
+import { CertBadge, EmptyState } from "@/components/Movie";
 import { useToast } from "@/components/Toast";
 import { Dialog } from "@/components/Dialog";
 
@@ -427,7 +427,10 @@ function Room() {
               {snap?.candidates.map((c) => (
                 <li key={c.candidate_id} className="mr-card flex items-center justify-between gap-3 p-4">
                   <div>
-                    <p className="font-bold">{c.title}</p>
+                    <p className="font-bold">
+                      {c.title}{" "}
+                      {c.certification && <CertBadge certification={c.certification} />}
+                    </p>
                     <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
                       {blind ? "vote hidden" : `${c.votes} vote${c.votes === 1 ? "" : "s"}`}
                       {c.release_year ? ` · ${c.release_year}` : ""}
@@ -469,7 +472,8 @@ function Room() {
                         <strong>{t.title}</strong>
                         <span style={{ color: "var(--mr-ink-soft)" }}>
                           {t.release_year ? ` (${t.release_year})` : ""}
-                        </span>
+                        </span>{" "}
+                        {t.certification && <CertBadge certification={t.certification} />}
                       </span>
                       <button
                         type="button"

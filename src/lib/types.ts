@@ -18,6 +18,7 @@ export interface Title {
   trailer_key?: string | null;
   tmdb_rating?: number | null;
   certification?: string | null;
+  is_adult?: boolean;
   popularity: number;
   hidden_gem: boolean;
   provenance: string;

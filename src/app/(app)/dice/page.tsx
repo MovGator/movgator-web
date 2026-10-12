@@ -5,6 +5,7 @@ import { api, ApiError } from "@/lib/api";
 import { MOODS } from "@/lib/moods";
 import type { Genre, Title } from "@/lib/types";
 import { EmptyState, GenreChip } from "@/components/Movie";
+import { MatureCover } from "@/components/MatureCover";
 import { Button } from "@/components/Button";
 import { PosterArt } from "@/components/PosterArt";
 import { AuthPrompt } from "@/components/AuthPrompt";
@@ -120,7 +121,9 @@ export default function DicePage() {
 
       {result && !empty && (
         <div className="mr-card mt-6 grid gap-4 p-4 sm:grid-cols-[160px_1fr]" aria-live="polite">
-          <PosterArt title={result} />
+          <MatureCover title={result}>
+            <PosterArt title={result} />
+          </MatureCover>
           <div>
             <h2 className="font-display text-xl font-bold">{result.title}</h2>
             <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>

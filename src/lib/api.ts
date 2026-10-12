@@ -306,6 +306,8 @@ export interface NightSnapshot {
     release_year: number | null;
     genres: string[];
     poster_url: string | null;
+    is_adult?: boolean;
+    certification?: string | null;
     votes: number;
     candidate_id: string;
   }[];

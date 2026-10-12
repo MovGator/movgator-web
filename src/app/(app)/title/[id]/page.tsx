@@ -4,6 +4,7 @@ import type { Title } from "@/lib/types";
 import { TitleActions } from "./actions";
 import { PosterArt } from "@/components/PosterArt";
 import { CertBadge, GenreChip, PosterRail } from "@/components/Movie";
+import { MatureCover } from "@/components/MatureCover";
 import { BackButton } from "@/components/BackButton";
 import { AppBar } from "@/components/AppBar";
 
@@ -57,7 +58,9 @@ export default async function TitlePage({ params }: { params: Promise<{ id: stri
           />
         )}
         <div className="title-hero-scrim">
-          <PosterArt title={t} large />
+          <MatureCover title={t}>
+            <PosterArt title={t} large />
+          </MatureCover>
           <div>
             <p className="muted text-sm font-semibold uppercase tracking-wide">
               {t.media_type === "anime" ? "Anime" : t.media_type} {t.release_year ? `· ${t.release_year}` : ""}

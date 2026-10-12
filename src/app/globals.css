@@ -121,6 +121,78 @@ a.mr-chip,
   gap: 0.5rem;
 }
 
+/* Mature-cover gate: blurred artwork + warning overlay while filtered. */
+.mature-cover {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.mature-cover-art {
+  filter: blur(18px) brightness(0.55);
+  transform: scale(1.08);
+}
+.mature-cover-art img {
+  pointer-events: none;
+}
+.mature-cover-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  text-align: center;
+  background: rgb(7 2 9 / 0.45);
+}
+.mature-cover-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgb(247 246 248 / 0.4);
+  color: #f7f6f8;
+}
+.mature-cert {
+  display: inline-block;
+  border: 1px solid var(--mr-gold);
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--mr-gold);
+}
+.mature-msg {
+  margin: 0;
+  max-width: 22rem;
+  color: #f7f6f8;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+.mature-cta {
+  background: none;
+  border: 0;
+  padding: 6px 4px;
+  color: var(--mr-gold);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.mature-cta:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 /* Content-rating badge (R, TV-MA, …) shown wherever titles appear. */
 .cert-badge {
   display: inline-block;

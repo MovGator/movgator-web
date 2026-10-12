@@ -15,7 +15,7 @@ import { useToast } from "@/components/Toast";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SettingsContent() {
-  const { me, refresh, signOut, loading } = useAuth();
+  const { me, refresh, signOut, loading, setFilterOn: setSharedFilterOn } = useAuth();
   const { push } = useToast();
   const router = useRouter();
   const params = useSearchParams();
@@ -58,6 +58,7 @@ export default function SettingsContent() {
     api.prefs()
       .then((p) => {
         setFilterOn(p.adult_filter_enabled);
+        setSharedFilterOn(p.adult_filter_enabled);
         setFilterLoaded(true);
       })
       .catch(() => setFilterLoaded(true));
@@ -67,6 +68,7 @@ export default function SettingsContent() {
     try {
       await api.prefsPatch({ adult_filter_enabled: on });
       setFilterOn(on);
+      setSharedFilterOn(on);
       push(on ? "Adult-content filter is on." : "Adult-content filter is off.");
       await refresh();
     } catch (err) {

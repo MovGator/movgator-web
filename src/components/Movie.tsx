@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Title } from "@/lib/types";
 import { PosterArt } from "./PosterArt";
+import { MatureCover } from "./MatureCover";
 
 export function GenreChip({ label, active }: { label: string; active?: boolean }) {
   return (
@@ -27,13 +28,25 @@ export function CertBadge({ certification }: { certification: string }) {
 
 export function MovieCard({ title }: { title: Title }) {
   return (
-    <Link
-      href={`/title/${title.id}`}
-      className="group block"
-      aria-label={`${title.title}${title.release_year ? ` (${title.release_year})` : ""}${title.certification ? `, rated ${title.certification}` : ""}`}
-    >
-      <PosterArt title={title} />
-      <p className="mt-2 truncate text-sm font-semibold group-hover:underline">{title.title}</p>
+    <div className="group block">
+      <MatureCover title={title}>
+        <Link
+          href={`/title/${title.id}`}
+          className="block"
+          aria-label={`${title.title}${title.release_year ? ` (${title.release_year})` : ""}${title.certification ? `, rated ${title.certification}` : ""}`}
+        >
+          <PosterArt title={title} />
+        </Link>
+      </MatureCover>
+      <p className="mt-2 truncate text-sm font-semibold">
+        <Link
+          href={`/title/${title.id}`}
+          className="group-hover:underline"
+          aria-label={`${title.title}${title.release_year ? ` (${title.release_year})` : ""}`}
+        >
+          {title.title}
+        </Link>
+      </p>
       <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
         {[title.release_year, title.media_type === "anime" ? "Anime" : null].filter(Boolean).join(" · ")}
         {title.certification && (
@@ -43,7 +56,7 @@ export function MovieCard({ title }: { title: Title }) {
           </>
         )}
       </p>
-    </Link>
+    </div>
   );
 }
 

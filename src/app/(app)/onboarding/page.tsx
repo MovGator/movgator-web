@@ -8,6 +8,7 @@ import type { Genre, Title } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/Button";
 import { PosterArt } from "@/components/PosterArt";
+import { MatureCover } from "@/components/MatureCover";
 import { useToast } from "@/components/Toast";
 
 export default function OnboardingPage() {
@@ -142,7 +143,9 @@ export default function OnboardingPage() {
         {index + 1} of {cards.length} · arrow keys: left passes, right likes
       </p>
       <div className="mr-card mt-4 p-4" aria-live="polite">
-        <PosterArt title={card} />
+        <MatureCover title={card}>
+          <PosterArt title={card} />
+        </MatureCover>
         <h2 className="font-display mt-3 text-xl font-bold">{card.title}</h2>
         <p className="text-sm" style={{ color: "var(--mr-ink-soft)" }}>
           {[card.release_year, card.media_type, ...(card.genres.slice(0, 3))].filter(Boolean).join(" · ")}

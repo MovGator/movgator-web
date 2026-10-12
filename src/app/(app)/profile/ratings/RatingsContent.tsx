@@ -5,6 +5,7 @@ import { ArrowLeft, Star, Trash } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { EmptyState, MovieCard } from "@/components/Movie";
+import { MatureCover } from "@/components/MatureCover";
 import { Button } from "@/components/Button";
 import { AppBar } from "@/components/AppBar";
 import { Dialog } from "@/components/Dialog";
@@ -114,14 +115,18 @@ export default function RatingsContent() {
           {visible.map((r) => (
             <li key={r.title_id} className="mr-card flex flex-col sm:flex-row gap-4 p-4">
               {r.title && (
-                <Link href={`/title/${r.title.id}`} className="shrink-0 w-24 h-36 sm:w-20 sm:h-30" aria-label={r.title.title}>
-                  <img
-                    src={r.title.poster_url ?? "/brand/movgator-icon-logo-light.svg"}
-                    alt=""
-                    className="w-full h-full object-cover rounded"
-                    loading="lazy"
-                  />
-                </Link>
+                <div className="shrink-0 w-24 h-36 sm:w-20 sm:h-30">
+                  <MatureCover title={r.title} roundedClassName="rounded">
+                    <Link href={`/title/${r.title.id}`} className="block h-full w-full" aria-label={r.title.title}>
+                      <img
+                        src={r.title.poster_url ?? "/brand/movgator-icon-logo-light.svg"}
+                        alt=""
+                        className="w-full h-full object-cover rounded"
+                        loading="lazy"
+                      />
+                    </Link>
+                  </MatureCover>
+                </div>
               )}
               <div className="flex-1 min-w-0">
                 {r.title ? (
