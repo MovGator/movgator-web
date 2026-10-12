@@ -121,6 +121,20 @@ a.mr-chip,
   gap: 0.5rem;
 }
 
+/* Content-rating badge (R, TV-MA, …) shown wherever titles appear. */
+.cert-badge {
+  display: inline-block;
+  border: 1px solid var(--mr-line);
+  border-radius: 6px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--mr-ink);
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
 /* Poster rails: horizontal scroll-snap, restrained */
 .rail {
   display: grid;

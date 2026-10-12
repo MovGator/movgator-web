@@ -13,17 +13,35 @@ export function GenreChip({ label, active }: { label: string; active?: boolean }
   );
 }
 
+export function CertBadge({ certification }: { certification: string }) {
+  return (
+    <span
+      className="cert-badge"
+      title={`Rated ${certification}`}
+      aria-label={`Rated ${certification}`}
+    >
+      {certification}
+    </span>
+  );
+}
+
 export function MovieCard({ title }: { title: Title }) {
   return (
     <Link
       href={`/title/${title.id}`}
       className="group block"
-      aria-label={`${title.title}${title.release_year ? ` (${title.release_year})` : ""}`}
+      aria-label={`${title.title}${title.release_year ? ` (${title.release_year})` : ""}${title.certification ? `, rated ${title.certification}` : ""}`}
     >
       <PosterArt title={title} />
       <p className="mt-2 truncate text-sm font-semibold group-hover:underline">{title.title}</p>
       <p className="text-xs" style={{ color: "var(--mr-ink-soft)" }}>
         {[title.release_year, title.media_type === "anime" ? "Anime" : null].filter(Boolean).join(" · ")}
+        {title.certification && (
+          <>
+            {" · "}
+            <CertBadge certification={title.certification} />
+          </>
+        )}
       </p>
     </Link>
   );

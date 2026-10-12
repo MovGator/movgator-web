@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import type { Title } from "@/lib/types";
 import { TitleActions } from "./actions";
 import { PosterArt } from "@/components/PosterArt";
-import { GenreChip, PosterRail } from "@/components/Movie";
+import { CertBadge, GenreChip, PosterRail } from "@/components/Movie";
 import { BackButton } from "@/components/BackButton";
 import { AppBar } from "@/components/AppBar";
 
@@ -85,6 +85,12 @@ export default async function TitlePage({ params }: { params: Promise<{ id: stri
                 <div>
                   <dt className="muted">{rating.source}</dt>
                   <dd className="font-semibold">{rating.value}</dd>
+                </div>
+              )}
+              {t.certification && (
+                <div>
+                  <dt className="muted">Rating</dt>
+                  <dd className="font-semibold"><CertBadge certification={t.certification} /></dd>
                 </div>
               )}
               {t.provenance === "seed" && (
