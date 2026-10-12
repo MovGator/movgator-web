@@ -1,8 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { ArrowRight, Envelope, Globe, List, UsersThree, X } from "@phosphor-icons/react";
+import { Envelope, Globe, UsersThree } from "@phosphor-icons/react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { NewsletterForm } from "./NewsletterForm";
@@ -26,7 +25,6 @@ const LINKS = [
 export function MarketingNav({ locale, dict }: { locale: Locale; dict: T }) {
   const path = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const switchLocale = (next: Locale) => {
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; SameSite=Lax`;
     router.refresh();
@@ -34,7 +32,7 @@ export function MarketingNav({ locale, dict }: { locale: Locale; dict: T }) {
   return (
     <div className="mkt-navwrap">
       <header className="mkt-nav">
-        <Link href="/" aria-label={tr(dict, "nav.homeAria")}>
+        <Link href="/" aria-label={tr(dict, "nav.homeAria")} className="mkt-nav-brand">
           <Logo height={26} />
         </Link>
         <nav aria-label={tr(dict, "nav.mainAria")} className="mkt-nav-links">
@@ -48,7 +46,7 @@ export function MarketingNav({ locale, dict }: { locale: Locale; dict: T }) {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="mkt-nav-actions ml-auto flex items-center gap-2">
           <LanguageSwitcher
             locale={locale}
             label={tr(dict, "lang.language")}
@@ -57,55 +55,12 @@ export function MarketingNav({ locale, dict }: { locale: Locale; dict: T }) {
           <ThemeToggle />
           <Link
             href="/get-started"
-            className="mr-btn-gold hidden px-4 py-2 text-sm sm:inline-block"
+            className="mr-btn-gold hidden px-4 py-2 text-sm md:inline-block"
           >
             {tr(dict, "nav.getStarted")}
           </Link>
-          <button
-            type="button"
-            className="mr-chip inline-flex items-center justify-center p-2 lg:hidden"
-            aria-expanded={open}
-            aria-controls="marketing-menu"
-            aria-label={open ? tr(dict, "nav.closeMenu") : tr(dict, "nav.openMenu")}
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? (
-              <X size={20} weight="regular" aria-hidden="true" />
-            ) : (
-              <List size={20} weight="regular" aria-hidden="true" />
-            )}
-          </button>
         </div>
       </header>
-      {open && (
-        <nav id="marketing-menu" aria-label={tr(dict, "nav.sectionsAria")} className="mkt-menu-panel lg:hidden">
-          <ul className="grid gap-1">
-            {LINKS.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  aria-current={path === l.href ? "page" : undefined}
-                  className="block rounded-2xl px-4 py-3 text-base font-medium"
-                  style={path === l.href ? { background: "var(--mr-surface-2)", fontWeight: 700 } : undefined}
-                >
-                  {tr(dict, l.labelKey)}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href="/get-started"
-                onClick={() => setOpen(false)}
-                className="mr-btn-gold mt-2 flex items-center justify-center gap-2 px-4 py-3 text-base"
-              >
-                {tr(dict, "nav.getStartedLong")}
-                <ArrowRight size={18} weight="bold" aria-hidden="true" />
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      )}
     </div>
   );
 }

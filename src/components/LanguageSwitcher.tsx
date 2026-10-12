@@ -15,7 +15,7 @@ export function LanguageSwitcher({
   onSwitch: (next: Locale) => void;
 }) {
   return (
-    <label className="mr-chip inline-flex items-center gap-2 px-3 py-2 text-sm">
+    <label className="mr-chip mkt-language-picker inline-flex items-center gap-2 px-3 py-2 text-sm">
       <Globe size={16} weight="regular" aria-hidden="true" />
       <span className="sr-only">{label}</span>
       <select
@@ -27,7 +27,7 @@ export function LanguageSwitcher({
             onSwitch(next as Locale);
           }
         }}
-        className="cursor-pointer bg-transparent font-semibold"
+        className="mkt-language-select cursor-pointer bg-transparent font-semibold"
       >
         {LOCALES.map((l) => (
           <option key={l} value={l}>
