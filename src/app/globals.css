@@ -697,6 +697,8 @@ input::placeholder, textarea::placeholder {
   box-shadow: 0 10px 30px rgb(0 0 0 / 0.14);
 }
 .mkt-nav-brand {
+  display: flex;
+  align-items: center;
   flex: 0 0 9.625rem;
   width: 9.625rem;
   max-width: 100%;
