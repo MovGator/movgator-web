@@ -54,6 +54,18 @@ body {
   font-family: inherit;
   -webkit-font-smoothing: antialiased;
 }
+/* Full-bleed bands (marquee) use 100vw; clip stray horizontal overflow
+   without breaking sticky positioning (overflow: clip keeps stickiness). */
+html,
+body {
+  overflow-x: clip;
+}
+@supports not (overflow: clip) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
 h1, h2, h3, .font-display {
   font-family: var(--mr-font-display);
   letter-spacing: -0.01em;
@@ -63,6 +75,11 @@ h1, h2, h3, .font-display {
   outline: 3px solid var(--mr-focus);
   outline-offset: 2px;
   border-radius: 6px;
+}
+/* Keep keyboard focus visible below the sticky marketing nav. */
+:target,
+:focus {
+  scroll-margin-top: 96px;
 }
 
 .mr-card {
@@ -99,12 +116,21 @@ h1, h2, h3, .font-display {
 .mr-chip {
   border: 1px solid var(--mr-line);
   border-radius: 999px;
-  min-height: 44px;
-  min-width: 44px;
   font-size: 14px;
   font-family: "Inter", system-ui, sans-serif;
-  padding-inline: 16px;
   font-weight: 600;
+}
+/* Interactive chips keep 44px targets; static label pills (p/span) stay compact. */
+button.mr-chip,
+a.mr-chip,
+[role="button"].mr-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding-inline: 16px;
 }
 
 /* Poster rails: horizontal scroll-snap, restrained */
@@ -166,13 +192,27 @@ h1, h2, h3, .font-display {
   animation: slideUp 0.3s ease-out;
 }
 
-/* Touch targets — 44px minimum per Apple HIG / lintapple */
-button, [role="button"], a {
+/* Touch targets — 44px minimum for controls (Apple HIG).
+   Scoped to real controls: blanket `a` sizing would stretch every inline
+   text link (footer, body copy) into 44px rows. Inline links keep the
+   WCAG 2.2 inline exception; button-like links opt in below. */
+button, [role="button"] {
   min-height: 44px;
   min-width: 44px;
   font-family: "Inter", system-ui, sans-serif;
-  font-size: 16px; /* lintapple-approved size */
+  font-size: 16px;
   line-height: 1.25;
+}
+a.mr-chip,
+a.mr-btn-primary,
+a.mr-btn-gold,
+a.mkt-cta,
+a.mkt-cta-arrow,
+a.app-side-item,
+a.app-tab,
+a.app-dice-orb {
+  min-height: 44px;
+  min-width: 44px;
 }
 button.small, [role="button"].small, a.small {
   min-height: 36px;
@@ -625,14 +665,17 @@ input::placeholder, textarea::placeholder {
   .mkt-nav-links { display: flex; }
 }
 .mkt-nav-links a {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   padding-inline: 14px;
   border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--mr-ink-soft);
+  color: var(--mr-ink);
+}
+.mkt-nav-links a:hover {
+  background: var(--mr-surface-2);
 }
 .mkt-nav-links a[aria-current="page"] {
   background: var(--mr-gold);
@@ -669,12 +712,15 @@ input::placeholder, textarea::placeholder {
 }
 .mkt-cta-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0;
+  row-gap: 12px;
   margin-top: 1.75rem;
 }
 .mkt-cta {
+  position: relative;
   display: inline-flex;
   align-items: center;
   min-height: 56px;
@@ -684,7 +730,11 @@ input::placeholder, textarea::placeholder {
   color: #24102e;
   font-weight: 800;
   letter-spacing: 0.04em;
-  font-size: 15px;
+  font-size: 16px;
+}
+.mkt-cta:focus-visible,
+.mkt-cta-arrow:focus-visible {
+  z-index: 1;
 }
 .mkt-cta-arrow {
   display: inline-flex;
@@ -719,7 +769,8 @@ input::placeholder, textarea::placeholder {
 .cine-panel .rail { --cine: 1; }
 .cine-caption {
   color: rgb(247 246 248 / 0.75);
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 /* Brand-plum surfaces: re-scope ink tokens so shared components stay legible */
 .on-plum {
@@ -728,13 +779,26 @@ input::placeholder, textarea::placeholder {
   --mr-line: rgb(247 246 248 / 0.25);
 }
 
-/* Gold marquee strip */
+/* Gold marquee strip — full viewport bleed, edge to edge.
+   The marketing `main` constrains content to max-w-6xl; this breaks the band
+   out so it always spans the full viewport width with square edges. */
 .marquee {
+  position: relative;
   overflow: hidden;
-  border-radius: 20px;
+  overflow: clip;
+  border-radius: 0;
   background: var(--mr-gold);
   color: #24102e;
   margin-top: 2.5rem;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
 }
 .marquee-track {
   display: flex;

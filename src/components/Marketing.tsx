@@ -116,36 +116,38 @@ export function MarketingFooter() {
           </Link>
         </div>
       </div>
-      <div className="mx-auto grid max-w-6xl gap-8 py-12 text-sm md:grid-cols-4">
-        <div className="md:col-span-2">
+      <div className="mx-auto grid max-w-6xl gap-8 py-12 text-sm sm:grid-cols-2 lg:grid-cols-12">
+        <div className="min-w-0 sm:col-span-2 lg:col-span-6">
           <Logo />
           <p className="mt-3 max-w-xs" style={{ color: "var(--mr-ink-soft)" }}>
             Find what to watch tonight — films and anime, decided alone or together.
           </p>
-          <NewsletterForm variant="card" showDescription />
+          <div className="mt-4">
+            <NewsletterForm variant="card" showDescription />
+          </div>
         </div>
-        <nav aria-label="Product">
-          <h2 className="font-display font-bold">Product</h2>
-          <ul className="mt-2 grid gap-2" style={{ color: "var(--mr-ink-soft)" }}>
-            <li><Link className="underline" href="/features">Features</Link></li>
-            <li><Link className="underline" href="/how-it-works">How it works</Link></li>
-            <li><Link className="underline" href="/use-cases">Use cases</Link></li>
-            <li><Link className="underline" href="/get-started">Get started</Link></li>
+        <nav aria-label="Product" className="lg:col-span-2">
+          <h2 className="font-display text-base font-bold">Product</h2>
+          <ul className="mt-2 grid gap-1" style={{ color: "var(--mr-ink-soft)" }}>
+            <li><Link className="inline-block rounded py-1 underline" href="/features">Features</Link></li>
+            <li><Link className="inline-block rounded py-1 underline" href="/how-it-works">How it works</Link></li>
+            <li><Link className="inline-block rounded py-1 underline" href="/use-cases">Use cases</Link></li>
+            <li><Link className="inline-block rounded py-1 underline" href="/get-started">Get started</Link></li>
           </ul>
         </nav>
-        <nav aria-label="Company">
-          <h2 className="font-display font-bold">Company</h2>
-          <ul className="mt-2 grid gap-2" style={{ color: "var(--mr-ink-soft)" }}>
-            <li><Link className="underline" href="/about">About</Link></li>
-            <li><Link className="underline" href="/faq">FAQ</Link></li>
-            <li><Link className="underline" href="/contact">Contact</Link></li>
+        <nav aria-label="Company" className="lg:col-span-2">
+          <h2 className="font-display text-base font-bold">Company</h2>
+          <ul className="mt-2 grid gap-1" style={{ color: "var(--mr-ink-soft)" }}>
+            <li><Link className="inline-block rounded py-1 underline" href="/about">About</Link></li>
+            <li><Link className="inline-block rounded py-1 underline" href="/faq">FAQ</Link></li>
+            <li><Link className="inline-block rounded py-1 underline" href="/contact">Contact</Link></li>
           </ul>
         </nav>
-        <nav aria-label="Legal">
-          <h2 className="font-display font-bold">Legal</h2>
-          <ul className="mt-2 grid gap-2" style={{ color: "var(--mr-ink-soft)" }}>
-            <li><Link className="underline" href="/privacy">Privacy</Link></li>
-            <li><Link className="underline" href="/terms">Terms</Link></li>
+        <nav aria-label="Legal" className="lg:col-span-2">
+          <h2 className="font-display text-base font-bold">Legal</h2>
+          <ul className="mt-2 grid gap-1" style={{ color: "var(--mr-ink-soft)" }}>
+            <li><Link className="inline-block rounded py-1 underline" href="/privacy">Privacy</Link></li>
+            <li><Link className="inline-block rounded py-1 underline" href="/terms">Terms</Link></li>
           </ul>
         </nav>
       </div>

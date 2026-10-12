@@ -42,18 +42,19 @@ export function NewsletterForm({ variant = "card", showDescription = true }: New
 
   if (variant === "inline") {
     return (
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 w-full max-w-md" role="search" aria-label="Newsletter signup">
-        <Input
-          label="Email address"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-          autoComplete="email"
-          className="flex-1"
-        />
-        <Button type="submit" disabled={busy} className="w-full sm:w-auto">
+      <form onSubmit={handleSubmit} className="flex w-full max-w-md flex-col gap-2 sm:flex-row sm:items-end" role="search" aria-label="Newsletter signup">
+        <div className="min-w-0 flex-1">
+          <Input
+            label="Email address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            autoComplete="email"
+          />
+        </div>
+        <Button type="submit" disabled={busy} className="w-full shrink-0 sm:w-auto">
           {busy ? "Subscribing…" : "Subscribe"}
         </Button>
       </form>
@@ -61,7 +62,7 @@ export function NewsletterForm({ variant = "card", showDescription = true }: New
   }
 
   return (
-    <div className="mr-card p-5" style={{ maxWidth: 480 }}>
+    <div className="mr-card mx-auto w-full p-5 sm:p-6" style={{ maxWidth: 480 }}>
       {showDescription && (
         <div className="space-y-1">
           <p className="font-semibold text-lg">Get movie updates in your inbox</p>
@@ -71,18 +72,21 @@ export function NewsletterForm({ variant = "card", showDescription = true }: New
         </div>
       )}
       <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <EnvelopeSimple size={18} weight="regular" aria-hidden="true" style={{ color: "var(--mr-ink-soft)" }} />
-          <Input
-            label="Email address"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-            autoComplete="email"
-            className="flex-1"
-          />
+        <div className="flex items-end gap-2">
+          <span aria-hidden="true" className="flex h-[44px] w-6 shrink-0 items-center justify-center" style={{ color: "var(--mr-ink-soft)" }}>
+            <EnvelopeSimple size={18} weight="regular" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <Input
+              label="Email address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              autoComplete="email"
+            />
+          </div>
         </div>
         {busy && <p className="text-xs text-center" style={{ color: "var(--mr-ink-soft)" }}>Sending…</p>}
         <Button type="submit" disabled={busy} className="w-full">

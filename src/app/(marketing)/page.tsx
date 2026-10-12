@@ -21,10 +21,10 @@ const MARQUEE_WORDS = ["Action", "Anime", "Comedy", "Drama", "Fantasy", "Horror"
 function Marquee() {
   const row = [...MARQUEE_WORDS, ...MARQUEE_WORDS];
   return (
-    <div className="marquee" aria-label="Browse every mood">
+    <div className="marquee" aria-hidden="true">
       <div className="marquee-track">
         {[0, 1].map((half) => (
-          <span key={half} aria-hidden={half === 1}>
+          <span key={half}>
             {row.map((w) => `${w}  •  `)}
           </span>
         ))}
@@ -162,7 +162,8 @@ export default async function LandingPage() {
 
       {feed && <PosterRail heading="Popular right now" items={popular} href="/home" />}
 
-      <section aria-labelledby="newsletter" className="mt-12 mx-auto max-w-2xl">
+      <section aria-labelledby="newsletter-heading" className="mt-12 mx-auto max-w-2xl">
+        <h2 id="newsletter-heading" className="sr-only">Newsletter signup</h2>
         <NewsletterForm variant="card" showDescription />
       </section>
 
